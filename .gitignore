@@ -1,0 +1,13 @@
+# Dependencias de Node
+node_modules/
+
+# Variables de entorno (muy importante para no filtrar contraseñas o URIs de bases de datos)
+.env
+
+# Carpetas de compilación de TypeScript (si en el futuro compilas tu código a JS)
+dist/
+build/
+
+# Archivos de logs
+npm-debug.log*
+yarn-error.log*
