@@ -1,4 +1,4 @@
-import { Componente } from "./Componente";
+import { Componente } from "./Componente.js";
 
 export class Carpeta extends Componente {
 
@@ -12,10 +12,25 @@ export class Carpeta extends Componente {
         this.idPadre = idPadre;
         this.ReadMe = ReadMe;
     }
+
+    getComponentes(): Componente[] {
+        return this.componentes;
+    }
+    getIdPadre(): number {
+        return this.idPadre;
+    }
+    getReadMe(): string {
+        return this.ReadMe;
+    }
     
     AñadirElemento(componente: Componente): void {
         this.componentes.push(componente);
     }
+    
+    EliminarElemento(id: number): void {
+        this.componentes = this.componentes.filter(c => c.getId() == id);
+    }
+
     
 
 }

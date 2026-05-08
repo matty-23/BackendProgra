@@ -15,7 +15,7 @@ export abstract class Componente {
         this.tipo = tipo
     }
 
-    protected getId(): number {
+    public getId(): number {
         return this.id;
     }
     protected getNombre(): string {

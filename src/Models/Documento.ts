@@ -1,4 +1,4 @@
-import { Componente } from "./Componente";
+import { Componente } from './Componente.js';
 export class Documento extends Componente {
     private contenido: string;
     private estado: string;
@@ -10,5 +10,24 @@ export class Documento extends Componente {
         this.estado = estado;
         this.version = version;
     }
+    getContenido(): string {
+        return this.contenido;
+    }
+    getEstado(): string {
+        return this.estado;
+    }
+    getVersion(): string {
+        return this.version;
+    }
+    setContenido(contenido: string): void {
+        this.contenido = contenido;
+    }
+    setEstado(estado: string): void {
+        this.estado = estado;
+    }
+    setVersion(version: string): void {
+        this.version = version;
+    }
+
     
 }
