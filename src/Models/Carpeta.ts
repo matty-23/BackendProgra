@@ -1,24 +1,26 @@
 import { Componente } from "./Componente.js";
+import type { Types } from "mongoose";
+
 
 export class Carpeta extends Componente {
 
     private componentes: Componente[];
-    private idPadre: number;
+    private idPadre: Types.ObjectId | null;
     private ReadMe: string;
     private ruta: string;
 
-    constructor(id: number, nombre: string, fechaCreacion: Date, fechaUltimaModificacion: Date, idUsuario: number, idPadre: number, ReadMe: string, ruta: string) {
+    constructor(id: number, nombre: string, fechaCreacion: Date, fechaUltimaModificacion: Date, idUsuario: number, idPadre: Types.ObjectId | null, ReadMe: string) {
         super(id, nombre, fechaCreacion, fechaUltimaModificacion, idUsuario, "carpeta");
         this.componentes = [];
         this.idPadre = idPadre;
         this.ReadMe = ReadMe;
-        this.ruta = ruta;
+        this.ruta = "";
     }
 
     getComponentes(): Componente[] {
         return this.componentes;
     }
-    getIdPadre(): number {
+    getIdPadre(): Types.ObjectId | null {
         return this.idPadre;
     }
     getReadMe(): string {
@@ -26,6 +28,12 @@ export class Carpeta extends Componente {
     }
     getRuta(): string {
         return this.ruta;
+    }
+    setReadMe(ReadMe: string): void {
+        this.ReadMe = ReadMe;
+    }
+    setidPadre(idPadre: Types.ObjectId | null): void {
+        this.idPadre = idPadre;
     }
 
     /* setRutaHijo(ruta: string): void {

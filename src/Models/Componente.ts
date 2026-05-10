@@ -1,4 +1,5 @@
-export abstract class Componente {
+
+export class Componente {
     private id: number; 
     private nombre: string;
     private fechaCreacion: Date;
