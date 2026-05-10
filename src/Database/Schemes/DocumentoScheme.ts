@@ -4,6 +4,7 @@ import mongoose, { Schema, type HydratedDocument } from "mongoose";
 export type DocumentoDocument = HydratedDocument<IDocumentoScheme>;
 
 const FileSchema = new Schema<IDocumentoScheme>({
+    id: { type: Number, required: true, unique: true },
  nombre: { type: String, required: true },
 
  fechaCreacion: { type: Date, default: Date.now },
