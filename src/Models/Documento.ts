@@ -13,11 +13,26 @@ export class Documento extends Componente {
     getContenido(): string {
         return this.contenido;
     }
+    getId(): number {
+        return super.getId();
+    }
     getEstado(): string {
         return this.estado;
     }
     getVersion(): string {
         return this.version;
+    }
+    getNombre(): string {
+        return super.getNombre();
+    }
+    getFechaCreacion(): Date {
+        return super.getFechaCreacion();
+    }
+    getFechaUltimaModificacion(): Date {
+        return super.getFechaUltimaModificacion();
+    }
+    getIdUsuario(): number {
+        return super.getIdUsuario();
     }
     setContenido(contenido: string): void {
         this.contenido = contenido;
