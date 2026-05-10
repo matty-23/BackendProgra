@@ -1,3 +1,4 @@
+
 export class Componente {
     private id: number; 
     private nombre: string;
