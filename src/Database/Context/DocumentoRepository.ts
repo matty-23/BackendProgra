@@ -1,6 +1,7 @@
 import { DocumentoModel } from '../Schemes/DocumentoScheme.js';
 import { Documento } from '../../Models/Documento.js';
 import type { IDocumentoScheme } from '../../Interfaces/IDocumentoScheme.js';
+import mongoose from 'mongoose';
 
 export class DocumentoRepository {
 
@@ -19,7 +20,7 @@ export class DocumentoRepository {
     }
 
     
-    async crear(documento: Documento): Promise<Documento> {
+    async crear(documento: Documento): Promise<mongoose.Types.ObjectId> {
         const nuevoDoc = new DocumentoModel({
             id: documento.getId(),
             nombre: documento['nombre'], 
@@ -29,11 +30,11 @@ export class DocumentoRepository {
             tipo: documento.getTipo(),
             contenido: documento.getContenido(),
             estado: documento.getEstado(),
-            version: documento.getVersion()
+            version: documento.getVersion() 
         });
 
         const docGuardado = await nuevoDoc.save();
-        return this.convertirADominio(docGuardado);
+        return docGuardado._id;
     }
 
     
