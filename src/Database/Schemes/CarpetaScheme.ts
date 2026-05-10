@@ -1,2 +1,1 @@
-import { ICarpetaScheme } from "../Interfaces/ICarpetaScheme.js";
- 
+//import { ICarpetaScheme } from "../Interfaces/ICarpetaScheme.js";

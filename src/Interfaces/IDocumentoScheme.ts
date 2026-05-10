@@ -1,4 +1,4 @@
-export interface IdocumentoScheme {
+export interface IDocumentoScheme {
     id: number;
     nombre: string;
     fechaCreacion: Date;

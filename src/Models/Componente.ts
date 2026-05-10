@@ -30,7 +30,7 @@ export abstract class Componente {
     protected getIdUsuario(): number {
         return this.idUsuario;
     }
-    protected getTipo(): string {
+    getTipo(): string {
         return this.tipo;
     }
     protected setNombre(nombre: string): void {
