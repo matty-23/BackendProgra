@@ -1,10 +1,10 @@
 import { ComponenteModel } from '../Schemes/ComponenteScheme.js';
 import { Componente } from '../../Models/Componente.js';
 import type { IComponenteScheme } from '../../Interfaces/IComponenteScheme.js';
-import { connection } from 'mongoose';
+import mongoose from 'mongoose';
+const { connection } = mongoose;
 import { CarpetaRepository } from './CarpetaRepository.js';
 import { Carpeta } from '../../Models/Carpeta.js';
-import mongoose from 'mongoose';
 import type { Documento } from '../../Models/Documento.js';
 import { DocumentoRepository } from './DocumentoRepository.js';
 
@@ -37,7 +37,7 @@ export class ComponenteRepository {
                 idtipoComponente: null // Se asignará después de crear el componente específico (Carpeta o Archivo) 
             });
 
-            const docGuardado = await nuevoComponente.save({ session }); // Pasamos la sesión
+            const docGuardado = await nuevoComponente.save({ session, validateBeforeSave: false });
             carpeta.setidPadre(docGuardado._id);
             const idCarpeta = await carpetasRepository.crear(carpeta);
 
@@ -71,7 +71,7 @@ export class ComponenteRepository {
                 idtipoComponente: null // Se asignará después de crear el componente específico (Carpeta o Archivo) 
             });
 
-            const docGuardado = await nuevoComponente.save({ session }); // Pasamos la sesión
+            const docGuardado = await nuevoComponente.save({ session, validateBeforeSave: false }); // Pasamos la sesión
             const idDocumento = await documentosRepository.crear(documento);
 
             nuevoComponente.idtipoComponente = idDocumento;
