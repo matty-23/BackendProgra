@@ -2,7 +2,8 @@ import { CarpetaModel } from '../Schemes/CarpetaScheme.js';
 import { Carpeta } from '../../Models/Carpeta.js';
 import mongoose, {  Types, type ObjectId } from 'mongoose';
 import type { ICarpetaScheme } from '../../Interfaces/ICarpetaScheme.js';
-import type { Componente } from '../../Models/Componente.js';
+import { Componente } from '../../Models/Componente.js';
+import { ComponenteRepository } from './ComponenteRepository.js';
 
 export class CarpetaRepository {
 
@@ -19,17 +20,28 @@ export class CarpetaRepository {
     }
 
     
-    async obtenerPorId(id: number,componente: Componente): Promise<Carpeta | null> {
+    async obtenerPorId(id: Types.ObjectId,componente: Componente): Promise<Carpeta | null> {
         const carpeta = await CarpetaModel.findOne({ id }).lean<ICarpetaScheme>().exec();
         if (!carpeta) return null;
-        const carpetaObtenida = new Carpeta(componente.getId(),componente['nombre'],componente['fechaCreacion'],componente['fechaUltimaModificacion'],componente['idUsuario'],componente['tipo'], carpeta.getReadMe(), carpeta.componentes);
+        const carpetaObtenida = new Carpeta(componente.getId(),componente['nombre'],componente['fechaCreacion'],componente['fechaUltimaModificacion'],componente['idUsuario'], carpeta.ReadMe, carpeta.componentes);
         return carpetaObtenida;
     }
 
     
-    async obtenerTodos(): Promise<Carpeta[]> {
-        const docs = await CarpetaModel.find().lean<ICarpetaScheme>().exec();
-        return docs.map(doc => this.convertirADominio(doc));
+    async obtenerTodasLasCarpetasDeUnNivel(Idcomponentes:Componente[]): Promise<Carpeta[]> {
+         
+        const componentes: Componente[] | null = [];
+        const repositorioComponente = new ComponenteRepository;
+
+        for(const Idcomponente in Idcomponentes){
+            const componente = await repositorioComponente.obtenerPorId(Idcomponente)
+            if (!componente){
+                continue;
+            }
+            componentes.push(componente);
+        }
+        //Ahora falta hacer que por cada componente se cree una carpeta y al final el metodo devuelva eso
+        return carpetas.map((c: ICarpetaScheme) => new Carpeta(componente.getId(),componente['nombre'],componente['fechaCreacion'],componente['fechaUltimaModificacion'],componente['idUsuario'], c.ReadMe,[]));
     }
 
 

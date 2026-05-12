@@ -8,9 +8,9 @@ export class Carpeta extends Componente {
     private ReadMe: string;
     private ruta: string;
 
-    constructor(_id: number, nombre: string, fechaCreacion: Date, fechaUltimaModificacion: Date, idUsuario: number, ReadMe: string) {
+    constructor(_id: number, nombre: string, fechaCreacion: Date, fechaUltimaModificacion: Date, idUsuario: number, ReadMe: string, componentes? : Componente[]) {
         super(_id, nombre, fechaCreacion, fechaUltimaModificacion, idUsuario, "carpeta");
-        this.componentes = [];
+        this.componentes = componentes || [];
         this.ReadMe = ReadMe;
         this.ruta = "";
     }

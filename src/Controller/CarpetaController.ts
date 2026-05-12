@@ -21,7 +21,6 @@ export class CarpetaController {
             fechaCreacion: c.getFechaCreacion(),
             fechaUltimaModificacion: c.getFechaUltimaModificacion(),
             idUsuario: c.getIdUsuario(),
-            idPadre: c.getIdPadre(),
             ReadMe: c.getReadMe()
         } as CarpetaDto));
 
@@ -44,7 +43,6 @@ export class CarpetaController {
             fechaCreacion: carpeta.getFechaCreacion(),
             fechaUltimaModificacion: carpeta.getFechaUltimaModificacion(),
             idUsuario: carpeta.getIdUsuario(),
-            idPadre: carpeta.getIdPadre()?.toString() ?? null,
             ReadMe: carpeta.getReadMe()
         };
 
@@ -66,7 +64,6 @@ export class CarpetaController {
             fechaCreacion: carpeta.getFechaCreacion(),
             fechaUltimaModificacion: carpeta.getFechaUltimaModificacion(),
             idUsuario: carpeta.getIdUsuario(),
-            idPadre: carpeta.getIdPadre()?.toString() ?? null,
             ReadMe: carpeta.getReadMe()
         };
         return carpetaDto;

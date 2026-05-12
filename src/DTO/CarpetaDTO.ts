@@ -7,6 +7,5 @@ export class CarpetaDto {
   readonly fechaCreacion!: Date;
   readonly fechaUltimaModificacion!: Date;
   readonly idUsuario!: number;
-  readonly idPadre!: string | null ;
   readonly ReadMe!: string;
 }

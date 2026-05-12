@@ -1,6 +1,6 @@
 import { ObjectId } from "mongodb";
 export class Usuario {
-    private _id: number;
+    private _id: ObjectId;
     private nombre: string;
     private apellido: string;
     private email: string;

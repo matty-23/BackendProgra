@@ -1,10 +1,10 @@
 import type { Types } from "mongoose";
 export class Componente {
-    private id: number; 
+    private id: Types.ObjectId; 
     private nombre: string;
     private fechaCreacion: Date;
     private fechaUltimaModificacion: Date
-    private idUsuario: number;
+    private idUsuario: Types.ObjectId;
     private tipo: string;
 
     constructor(id: number, nombre: string, fechaCreacion: Date, fechaUltimaModificacion: Date, idUsuario: number, tipo: string) {

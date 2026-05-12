@@ -61,7 +61,7 @@ export class ComponenteRepository {
         } 
 
     }
-    async obtenerPorId(id: number): Promise<Componente | null> {
+    async obtenerPorId(id: Types.ObjectId): Promise<Componente | null> {
         const componente = await ComponenteModel.findOne({ id }).lean<Componente>();
         if (!componente) return null;
 
@@ -83,7 +83,7 @@ export class ComponenteRepository {
         if (!componenteActualizado) return null;
         return componenteActualizado;
     }
-    async eliminar(id: number): Promise<boolean> {
+    async eliminar(id: Types.ObjectId): Promise<boolean> {
         const resultado = await ComponenteModel.deleteOne({ id }).exec();
         return resultado.deletedCount === 1;
     }
