@@ -5,6 +5,7 @@ import type { Types } from "mongoose";
 import mongoose from 'mongoose';
 
 export class UsuarioRepository {
+
     async crearUsuario(usuario: Usuario): Promise<void> {
         const session = await mongoose.connection.startSession();
         session.startTransaction();
@@ -31,12 +32,21 @@ export class UsuarioRepository {
             session.endSession();
         }
     }
-    //A partir de aca falta el resto. CrearUsuario esta terminado
-    async obtenerUsuarioPorId(id: Types.ObjectId): Promise<Usuario | null> {
-        return await UsuarioModel.findById(id).lean();
+    
+    async obtenerUsuarioPorId(id: Types.ObjectId): Promise<Usuario> {
+        //El lead<Usuario> convirte el documento Mongo a un objeto
+        const usuario = await UsuarioModel.findById(id).lean<Usuario>();
+        if (!usuario) {
+            throw new Error("Usuario no encontrado");
+        }
+        return usuario;
     }
-    async obtenerUsuarioPorUsername(username: string): Promise<Usuario | null> {
-        return await UsuarioModel.findOne({ username }).lean();
+    async obtenerUsuarioPorUsername(username: string): Promise<Usuario> {
+        const usuario = await UsuarioModel.findOne({ username }).lean<Usuario>();
+        if (!usuario) {
+            throw new Error("Usuario no encontrado");
+        }
+        return usuario;
     }
     async actualizarUsuario(id: Types.ObjectId, usuario: Partial<Usuario>): Promise<void> {
         await UsuarioModel.findByIdAndUpdate(id, usuario);

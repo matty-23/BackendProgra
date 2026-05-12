@@ -1,39 +1,21 @@
 import { CarpetaModel } from '../Schemes/CarpetaScheme.js';
 import { Carpeta } from '../../Models/Carpeta.js';
-import mongoose from 'mongoose';
+import mongoose, {  Types, type ObjectId } from 'mongoose';
 import type { ICarpetaScheme } from '../../Interfaces/ICarpetaScheme.js';
 import type { Componente } from '../../Models/Componente.js';
 
 export class CarpetaRepository {
 
-   
-    private convertirADominio(carpeta: ICarpetaScheme): Carpeta {
-        return new Carpeta(
-            carpeta.id,
-            carpeta.nombre,
-            carpeta.fechaCreacion,
-            carpeta.fechaUltimaModificacion,
-            carpeta.idUsuario,
-            carpeta.idPadre,
-            carpeta.ReadMe
-        ); 
-    }
-
     
-    async crear(carpeta: Carpeta): Promise<mongoose.Types.ObjectId>{
+    async crear(ReadMe: string,id: Types.ObjectId, componentes: Types.ObjectId[]): Promise<Types.ObjectId>{
         const nuevaCarpeta = new CarpetaModel({
-            id: carpeta.getId(),
-            nombre: carpeta['nombre'],
-            fechaCreacion: carpeta['fechaCreacion'],
-            fechaUltimaModificacion: carpeta['fechaUltimaModificacion'],
-            idUsuario: carpeta['idUsuario'],
-            tipo: carpeta['tipo'],
-            idPadre: carpeta['idPadre'],
-            ReadMe: carpeta['ReadMe']
+            _id: id,
+            ReadMe: ReadMe,
+            componentes: componentes
         });
 
-        const docGuardado = await nuevaCarpeta.save();
-        return docGuardado._id;
+        const carpetaCreada = await nuevaCarpeta.save();
+        return carpetaCreada._id;
     }
 
     

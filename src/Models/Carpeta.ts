@@ -8,8 +8,8 @@ export class Carpeta extends Componente {
     private ReadMe: string;
     private ruta: string;
 
-    constructor(id: number, nombre: string, fechaCreacion: Date, fechaUltimaModificacion: Date, idUsuario: number, idPadre: Types.ObjectId | null, ReadMe: string) {
-        super(id, nombre, fechaCreacion, fechaUltimaModificacion, idUsuario, idPadre, "carpeta");
+    constructor(_id: number, nombre: string, fechaCreacion: Date, fechaUltimaModificacion: Date, idUsuario: number, ReadMe: string) {
+        super(_id, nombre, fechaCreacion, fechaUltimaModificacion, idUsuario, "carpeta");
         this.componentes = [];
         this.ReadMe = ReadMe;
         this.ruta = "";
@@ -30,9 +30,6 @@ export class Carpeta extends Componente {
     getComponentes(): Componente[] {
         return this.componentes;
     }
-    getIdPadre(): Types.ObjectId | null {
-        return super.getIdPadre();
-    }
     getReadMe(): string {
         return this.ReadMe;
     }
@@ -41,9 +38,6 @@ export class Carpeta extends Componente {
     }
     setReadMe(ReadMe: string): void {
         this.ReadMe = ReadMe;
-    }
-    setidPadre(idPadre: Types.ObjectId | null): void {
-        super.setIdPadre(idPadre);
     }
 
     /* setRutaHijo(ruta: string): void {
