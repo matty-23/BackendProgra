@@ -1,14 +1,12 @@
 import {ComponenteRepository} from "./ComponenteRepository.js";
 import { UsuarioModel } from "../Schemes/UsuarioScheme.js";
 import { Usuario } from "../../Models/Usuario.js";
-import type { Types } from "mongoose";
+import type { ClientSession, ObjectId, Types } from "mongoose";
 import mongoose from 'mongoose';
 
 export class UsuarioRepository {
 
-    async crearUsuario(usuario: Usuario): Promise<void> {
-        const session = await mongoose.connection.startSession();
-        session.startTransaction();
+    async crearUsuario(usuario: Usuario, session?: ClientSession): Promise<Types.ObjectId> {
         const componenteRepository = new ComponenteRepository();
         try {
             const nuevoUsuario = new UsuarioModel({
@@ -17,20 +15,14 @@ export class UsuarioRepository {
                 email: usuario.getEmail(),
                 username: usuario.getUsername(),
                 password: usuario.getPassword(),
-                idCarpetaRaiz: null, // Se asignará después de crear la carpeta raíz
                 fechaCreacion: usuario.getFechaCreacion()
             });
-            const UsuarioNuevo =  await nuevoUsuario.save({ session });
-            const CarpetaRaiz = await componenteRepository.crearComponenteCarpetaPrincipal(UsuarioNuevo._id);
-            await nuevoUsuario.updateOne({ idCarpetaRaiz: CarpetaRaiz }, { session });
-            await session.commitTransaction();
-
+            const UsuarioNuevo =  await nuevoUsuario.save({ ...(session ? { session } : {}) });
+            await componenteRepository.crearComponenteCarpetaPrincipal(UsuarioNuevo._id, session);
+            return UsuarioNuevo._id;
         } catch (error) {
-            await session.abortTransaction();
             throw error;
-        } finally {
-            session.endSession();
-        }
+        } 
     }
     
     async obtenerUsuarioPorId(id: Types.ObjectId): Promise<Usuario> {

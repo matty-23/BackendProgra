@@ -6,17 +6,15 @@ export class Usuario {
     private email: string;
     private username: string;
     private password: string;
-    private idCarpetaRaiz: ObjectId;
     private fechaCreacion: Date;
 
-    constructor(id: number, nombre: string, apellido: string, email: string, username: string, password: string, idCarpetaRaiz: ObjectId) {
+    constructor(id: number, nombre: string, apellido: string, email: string, username: string, password: string) {
         this._id = id;
         this.nombre = nombre;
         this.apellido = apellido;
         this.email = email;
         this.username = username;
         this.password = password;
-        this.idCarpetaRaiz = idCarpetaRaiz;
         this.fechaCreacion = new Date();
     }
 
@@ -38,9 +36,6 @@ export class Usuario {
     getPassword(): string {
         return this.password;
     }
-    getIdCarpetaRaiz(): ObjectId {
-        return this.idCarpetaRaiz;
-    }
     getFechaCreacion(): Date {
         return this.fechaCreacion;
     }
@@ -58,9 +53,6 @@ export class Usuario {
     }
     setPassword(password: string): void {
         this.password = password;
-    }
-    setIdCarpetaRaiz(idCarpetaRaiz: ObjectId): void {
-        this.idCarpetaRaiz = idCarpetaRaiz;
     }
 
 }

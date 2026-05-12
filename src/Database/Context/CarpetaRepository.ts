@@ -19,15 +19,16 @@ export class CarpetaRepository {
     }
 
     
-    async obtenerPorId(id: number): Promise<Carpeta | null> {
-        const doc = await CarpetaModel.findOne({ id }).exec();
-        if (!doc) return null;
-        return this.convertirADominio(doc);
+    async obtenerPorId(id: number,componente: Componente): Promise<Carpeta | null> {
+        const carpeta = await CarpetaModel.findOne({ id }).lean<ICarpetaScheme>().exec();
+        if (!carpeta) return null;
+        const carpetaObtenida = new Carpeta(componente.getId(),componente['nombre'],componente['fechaCreacion'],componente['fechaUltimaModificacion'],componente['idUsuario'],componente['tipo'], carpeta.getReadMe(), carpeta.componentes);
+        return carpetaObtenida;
     }
 
     
     async obtenerTodos(): Promise<Carpeta[]> {
-        const docs = await CarpetaModel.find().exec();
+        const docs = await CarpetaModel.find().lean<ICarpetaScheme>().exec();
         return docs.map(doc => this.convertirADominio(doc));
     }
 
@@ -35,7 +36,7 @@ export class CarpetaRepository {
     async actualizar(id: number, datosActualizados: Partial<ICarpetaScheme>): Promise<Carpeta | null> {
         datosActualizados.fechaUltimaModificacion = new Date();
 
-        const docActualizado = await CarpetaModel.findOneAndUpdate({ id }, datosActualizados, { new: true }).exec();
+        const docActualizado = await CarpetaModel.findOneAndUpdate({ id }, datosActualizados, { new: true }).lean<ICarpetaScheme>().exec();
 
         if (!docActualizado) return null;
         return this.convertirADominio(docActualizado);
@@ -44,7 +45,7 @@ export class CarpetaRepository {
 
 
     async eliminar(id: number): Promise<boolean> {
-        const resultado = await CarpetaModel.deleteOne({ id }).exec();
+        const resultado = await CarpetaModel.deleteOne({ id }).lean<ICarpetaScheme>().exec();
         return resultado.deletedCount === 1;
     }
 }
