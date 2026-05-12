@@ -7,6 +7,7 @@ import { CarpetaRepository } from './CarpetaRepository.js';
 import { Carpeta } from '../../Models/Carpeta.js';
 import type { Documento } from '../../Models/Documento.js';
 import { DocumentoRepository } from './DocumentoRepository.js';
+import { ObjectId } from "mongodb";
 
 export class ComponenteRepository {
 
@@ -22,6 +23,30 @@ export class ComponenteRepository {
             componente.tipo
         );
     }
+
+    async crearComponenteCarpetaPrincipal(idUsuario:ObjectId): Promise<ObjectId> {
+        try {
+            const nuevoComponente = new ComponenteModel({
+                nombre: "${idUsuario}",
+                fechaCreacion: Date.now(),
+                fechaUltimaModificacion: Date.now(),
+                idUsuario: idUsuario,
+                tipo: "carpeta"
+            });
+
+            await nuevoComponente.save();
+            //Falta llamar a carpetaRepository para crear la carpeta raíz y asignar su ID al componente creado, además de crear las carpetas base dentro de la carpeta raíz
+            //Tambien falta cambiar el modelo, esquema, borrar interfaz y demas de Componente, Documento y Carpeta
+            await this.crearComponenteCarpetasBase("Mi Area", "Compartidos conmigo", "Recientes", "Destacados");
+
+            return nuevoComponente._id;
+
+        } catch (error) {
+            throw error;
+        }
+    }
+
+
     async crearComponenteCarpeta(componente: Componente,carpeta: Carpeta): Promise<Componente> {
         const session = await connection.startSession();
         session.startTransaction();
