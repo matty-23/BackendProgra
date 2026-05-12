@@ -6,15 +6,13 @@ export class Componente {
     private fechaUltimaModificacion: Date
     private idUsuario: number;
     private tipo: string;
-    private idPadre: Types.ObjectId | null;
 
-    constructor(id: number, nombre: string, fechaCreacion: Date, fechaUltimaModificacion: Date, idUsuario: number, idPadre: Types.ObjectId | null, tipo: string) {
+    constructor(id: number, nombre: string, fechaCreacion: Date, fechaUltimaModificacion: Date, idUsuario: number, tipo: string) {
         this.id = id,
         this.nombre = nombre,
         this.fechaCreacion = fechaCreacion,
         this.fechaUltimaModificacion = fechaUltimaModificacion,
         this.idUsuario = idUsuario,
-        this.idPadre = idPadre,
         this.tipo = tipo
     }
 
@@ -23,9 +21,6 @@ export class Componente {
     }
     protected getNombre(): string {
         return this.nombre;
-    }
-    protected getIdPadre (): Types.ObjectId | null {
-        return this.idPadre
     }
     protected getFechaCreacion(): Date {
         return this.fechaCreacion;
@@ -41,9 +36,6 @@ export class Componente {
     }
     protected setNombre(nombre: string): void {
         this.nombre = nombre;
-    }
-    protected setIdPadre(idPadre: Types.ObjectId | null):void{
-        this.idPadre = idPadre;
     }
     protected setFechaUltimaModificacion(fechaUltimaModificacion: Date): void {
         this.fechaUltimaModificacion = fechaUltimaModificacion;
