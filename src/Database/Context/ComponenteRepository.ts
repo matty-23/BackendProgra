@@ -18,6 +18,7 @@ export class ComponenteRepository {
             componente.fechaCreacion,
             componente.fechaUltimaModificacion,
             componente.idUsuario,
+            componente.idPadre,
             componente.tipo
         );
     }
@@ -113,4 +114,9 @@ export class ComponenteRepository {
         const resultado = await ComponenteModel.deleteOne({ id }).exec();
         return resultado.deletedCount === 1;
     }
+    async obtenerHijos(id:number): Promise<Componente[]>{
+        const componentesHijos = await ComponenteModel.find({ IdPadre: id });
+        return componentesHijos.map(c => this.convertirADominio(c));
+    }
+
 }

@@ -6,6 +6,6 @@ export interface ICarpetaScheme {
     fechaCreacion: Date;
     fechaUltimaModificacion: Date;
     idUsuario: number;
-    idPadre: Types.ObjectId | null;
+idPadre: Types.ObjectId
     ReadMe: string;
 }

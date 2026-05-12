@@ -1,8 +1,10 @@
 import type { ICarpetaService } from '../Interfaces/ICarpetaService.js';
 import type { IDocumentoService } from '../Interfaces/IDocumentoService.js';
-import { Controller, Get, Param, NotFoundException, Post, Body,BadRequestException, HttpCode, Put, Delete  } from '@nestjs/common';
+import { Controller, Get, Param, NotFoundException, Post, Body, BadRequestException, HttpCode, Put, Delete } from '@nestjs/common';
 import { CarpetaDto } from '../DTO/CarpetaDTO.js';
-import { DocumentoDto } from '../DTO/DocumentDTO.js';
+import { DocumentoDto } from '../DTO/DocumentoDTO.js';
+import { Carpeta } from '../Models/Carpeta.js';
+import { Documento } from '../Models/Documento.js';
 
 @Controller('api/Carpetas')
 export class CarpetaController {
@@ -11,29 +13,63 @@ export class CarpetaController {
 
     @Get()
     async getAll(): Promise<CarpetaDto[]> {
-        const Carpetas = await this._CarpetaService.getCarpetas();
-        return Carpetas;
+        const carpetas = await this._CarpetaService.getCarpetas();
+
+        const carpetasDto = carpetas.map(c => ({
+            id: c.getId(),
+            nombre: c.getNombre(),
+            fechaCreacion: c.getFechaCreacion(),
+            fechaUltimaModificacion: c.getFechaUltimaModificacion(),
+            idUsuario: c.getIdUsuario(),
+            idPadre: c.getIdPadre(),
+            ReadMe: c.getReadMe()
+        } as CarpetaDto));
+
+        return carpetasDto;
     }
-    
+
     @Get(':id')
     async getById(@Param('id') id: string): Promise<CarpetaDto> {
-        const idDoc = parseInt(id, 10);
-        const Carpeta = await this._CarpetaService.getCarpetaById(idDoc);
-        if (!Carpeta) {
-            throw new NotFoundException(`Carpeta con ID ${idDoc} no encontrado.`);
+        const idCarp = parseInt(id, 10);
+        const carpeta = await this._CarpetaService.getCarpetaById(idCarp);
+        const componentes = await this._CarpetaService.getComponentesCarpeta(idCarp)
+
+        if (!carpeta) {
+            throw new NotFoundException(`Carpeta con ID ${idCarp} no encontrado.`);
         }
-        return Carpeta;
+
+        const carpetaDto: CarpetaDto = {
+            id: carpeta.getId(),
+            nombre: carpeta.getNombre(),
+            fechaCreacion: carpeta.getFechaCreacion(),
+            fechaUltimaModificacion: carpeta.getFechaUltimaModificacion(),
+            idUsuario: carpeta.getIdUsuario(),
+            idPadre: carpeta.getIdPadre()?.toString() ?? null,
+            ReadMe: carpeta.getReadMe()
+        };
+
+        return carpetaDto;
     }
 
     @Post()
     @HttpCode(201)
-    async registrar(@Body() doc: CarpetaDto): Promise<CarpetaDto> {
-        
-        const Carpeta = await this._CarpetaService.addCarpeta(doc);
-        if (!Carpeta) {
+    async registrar(@Body() carp: CarpetaDto): Promise<CarpetaDto> {
+
+        const carpeta = await this._CarpetaService.addCarpeta(carp);
+        if (!carpeta) {
             throw new BadRequestException("Error al registrar el Carpeta.");
         }
-        return Carpeta;
+        const componentes = await this._CarpetaService.getComponentesCarpeta(carp.id)
+        const carpetaDto: CarpetaDto = {
+            id: carpeta.getId(),
+            nombre: carpeta.getNombre(),
+            fechaCreacion: carpeta.getFechaCreacion(),
+            fechaUltimaModificacion: carpeta.getFechaUltimaModificacion(),
+            idUsuario: carpeta.getIdUsuario(),
+            idPadre: carpeta.getIdPadre()?.toString() ?? null,
+            ReadMe: carpeta.getReadMe()
+        };
+        return carpetaDto;
     }
 
     @Put(':id')
@@ -55,7 +91,7 @@ export class CarpetaController {
     }
 
     @Get(':id/componentes')
-    async getComponentes(@Param('id') id: string): Promise<(CarpetaDto | DocumentoDto)[]> {
+    async getComponentes(@Param('id') id: string): Promise<(CarpetaDto | Documento)[]> {
         const idDoc = parseInt(id, 10);
         return await this._CarpetaService.getComponentesCarpeta(idDoc);
     }

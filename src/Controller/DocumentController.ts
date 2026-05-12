@@ -1,8 +1,9 @@
 import type { IDocumentoService } from '../Interfaces/IDocumentoService.js';
-import { Controller, Get, Param, NotFoundException, Post, Body,BadRequestException, HttpCode, Put, Delete  } from '@nestjs/common';
-import { DocumentoDto } from '../DTO/DocumentDTO.js';
+import { Controller, Get, Param, NotFoundException, Post, Body, BadRequestException, HttpCode, Put, Delete } from '@nestjs/common';
+import { DocumentoDto } from '../DTO/DocumentoDTO.js';
+import { Documento } from '../Models/Documento.js';
 
-@Controller('api/documentos')
+@Controller('api/Documentos')
 export class DocumentoController {
 
     constructor(private readonly _documentoService: IDocumentoService) { }
@@ -10,28 +11,65 @@ export class DocumentoController {
     @Get()
     async getAll(): Promise<DocumentoDto[]> {
         const Documentos = await this._documentoService.getDocumentos();
-        return Documentos;
+
+        const DocumentosDto = Documentos.map(c => ({
+            id: c.getId(),
+            nombre: c.getNombre(),
+            fechaCreacion: c.getFechaCreacion(),
+            fechaUltimaModificacion: c.getFechaUltimaModificacion(),
+            idUsuario: c.getIdUsuario(),
+            idPadre: c.getIdPadre(),
+            contenido: c.getContenido(),
+            estado: c.getEstado(),
+            version: c.getVersion()
+        } as DocumentoDto));
+
+        return DocumentosDto;
     }
-    
+
     @Get(':id')
     async getById(@Param('id') id: string): Promise<DocumentoDto> {
         const idDoc = parseInt(id, 10);
-        const documento = await this._documentoService.getDocumentoById(idDoc);
-        if (!documento) {
+        const Documento = await this._documentoService.getDocumentoById(idDoc);
+
+        if (!Documento) {
             throw new NotFoundException(`Documento con ID ${idDoc} no encontrado.`);
         }
-        return documento;
+
+        const DocumentoDto: DocumentoDto = {
+            id: Documento.getId(),
+            nombre: Documento.getNombre(),
+            fechaCreacion: Documento.getFechaCreacion(),
+            fechaUltimaModificacion: Documento.getFechaUltimaModificacion(),
+            idUsuario: Documento.getIdUsuario(),
+            contenido: Documento.getContenido(),
+            estado: Documento.getEstado(),
+            version: Documento.getVersion()
+        };
+
+        return DocumentoDto;
     }
 
     @Post()
     @HttpCode(201)
-    async registrar(@Body() doc: DocumentoDto): Promise<DocumentoDto> {
-        
-        const documento = await this._documentoService.addDocumento(doc);
-        if (!documento) {
-            throw new BadRequestException("Error al registrar el documento.");
+    async registrar(@Body() carp: DocumentoDto): Promise<DocumentoDto> {
+
+        const Documento = await this._documentoService.addDocumento(carp);
+        if (!Documento) {
+            throw new BadRequestException("Error al registrar el Documento.");
         }
-        return documento;
+
+        const DocumentoDto: DocumentoDto = {
+            id: Documento.getId(),
+            nombre: Documento.getNombre(),
+            fechaCreacion: Documento.getFechaCreacion(),
+            fechaUltimaModificacion: Documento.getFechaUltimaModificacion(),
+            idUsuario: Documento.getIdUsuario(),
+            contenido: Documento.getContenido(),
+            estado: Documento.getEstado(),
+            version: Documento.getVersion()
+        };
+        return DocumentoDto;
     }
 
     @Put(':id')
@@ -51,7 +89,5 @@ export class DocumentoController {
             throw new NotFoundException(`Documento con ID ${idDoc} no encontrado para eliminar.`);
         }
     }
+
 }
-
-
-

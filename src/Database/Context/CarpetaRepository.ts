@@ -2,6 +2,7 @@ import { CarpetaModel } from '../Schemes/CarpetaScheme.js';
 import { Carpeta } from '../../Models/Carpeta.js';
 import mongoose from 'mongoose';
 import type { ICarpetaScheme } from '../../Interfaces/ICarpetaScheme.js';
+import type { Componente } from '../../Models/Componente.js';
 
 export class CarpetaRepository {
 
@@ -48,7 +49,7 @@ export class CarpetaRepository {
         return docs.map(doc => this.convertirADominio(doc));
     }
 
-    
+
     async actualizar(id: number, datosActualizados: Partial<ICarpetaScheme>): Promise<Carpeta | null> {
         datosActualizados.fechaUltimaModificacion = new Date();
 
@@ -58,7 +59,8 @@ export class CarpetaRepository {
         return this.convertirADominio(docActualizado);
     }
 
-    
+
+
     async eliminar(id: number): Promise<boolean> {
         const resultado = await CarpetaModel.deleteOne({ id }).exec();
         return resultado.deletedCount === 1;

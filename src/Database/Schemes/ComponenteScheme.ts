@@ -12,6 +12,7 @@ const ComponenteSchema = new Schema<IComponenteScheme>({
 
     idUsuario: { type: Number, required: true },
     tipo: { type: String},
+    idPadre: { type: Schema.Types.ObjectId, ref: 'Carpeta', default: null },
     idtipoComponente: { type: Schema.Types.ObjectId, required: true }
 }, {
     versionKey: false

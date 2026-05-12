@@ -1,4 +1,4 @@
-import { Types} from 'mongoose';
+import { Types } from 'mongoose';
 export interface IComponenteScheme {
     id: number;
     nombre: string;
@@ -6,5 +6,6 @@ export interface IComponenteScheme {
     fechaUltimaModificacion: Date;
     idUsuario: number;
     tipo: string;
+    idPadre: Types.ObjectId | null;
     idtipoComponente: Types.ObjectId;
 }

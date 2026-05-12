@@ -1,3 +1,4 @@
+import {Types} from "mongoose";
 export interface IDocumentoScheme {
     id: number;
     nombre: string;
@@ -7,4 +8,5 @@ export interface IDocumentoScheme {
     contenido: string;
     estado: string;
     version: string;
-}
+    idPadre: Types.ObjectId | null;
+   }

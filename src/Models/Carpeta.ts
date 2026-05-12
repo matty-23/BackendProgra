@@ -1,27 +1,37 @@
+import { setUncaughtExceptionCaptureCallback } from "process";
 import { Componente } from "./Componente.js";
 import type { Types } from "mongoose";
 
 
 export class Carpeta extends Componente {
-
     private componentes: Componente[];
-    private idPadre: Types.ObjectId | null;
     private ReadMe: string;
     private ruta: string;
 
     constructor(id: number, nombre: string, fechaCreacion: Date, fechaUltimaModificacion: Date, idUsuario: number, idPadre: Types.ObjectId | null, ReadMe: string) {
-        super(id, nombre, fechaCreacion, fechaUltimaModificacion, idUsuario, "carpeta");
+        super(id, nombre, fechaCreacion, fechaUltimaModificacion, idUsuario, idPadre, "carpeta");
         this.componentes = [];
-        this.idPadre = idPadre;
         this.ReadMe = ReadMe;
         this.ruta = "";
     }
+    getNombre(): string {
+        return super.getNombre();
+    }
+    getFechaCreacion(): Date {
+        return super.getFechaCreacion();
+    }
+    getFechaUltimaModificacion(): Date {
+        return super.getFechaUltimaModificacion();
+    }
 
+    getIdUsuario(): number {
+        return super.getIdUsuario();
+    }
     getComponentes(): Componente[] {
         return this.componentes;
     }
     getIdPadre(): Types.ObjectId | null {
-        return this.idPadre;
+        return super.getIdPadre();
     }
     getReadMe(): string {
         return this.ReadMe;
@@ -33,7 +43,7 @@ export class Carpeta extends Componente {
         this.ReadMe = ReadMe;
     }
     setidPadre(idPadre: Types.ObjectId | null): void {
-        this.idPadre = idPadre;
+        super.setIdPadre(idPadre);
     }
 
     /* setRutaHijo(ruta: string): void {
@@ -47,11 +57,11 @@ export class Carpeta extends Componente {
     AñadirElemento(componente: Componente): void {
         this.componentes.push(componente);
     }
-    
+
     EliminarElemento(id: number): void {
         this.componentes = this.componentes.filter(c => c.getId() == id);
     }
 
-    
+
 
 }
