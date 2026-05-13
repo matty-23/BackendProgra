@@ -20,43 +20,39 @@ export class CarpetaRepository {
         return carpetaCreada._id;
     }
 
-    async obtenerPorId(id: Types.ObjectId): Promise<ICarpetaScheme | null> {
-        const carpeta = await CarpetaModel.findOne({ _id: id }).lean<ICarpetaScheme>().exec();
+    async obtenerPorId(id: Types.ObjectId,componente:Componente): Promise<Carpeta | null> {
+        const carpeta = await CarpetaModel.findOne({ _id: id }).lean<Carpeta>().exec();
         if (!carpeta) return null;
-        return carpeta;
+        const carpetaActualizada=new Carpeta(componente.getId(),componente['nombre'], componente['fechaCreacion'],componente['fechaUltimaModificacion'],componente['idUsuario'],carpeta.getReadMe(),[]);
+        return carpetaActualizada;
     }
 
-    
-    //Esto solo devuelve carpetas hijas de un componente. La logica para traer tanbien los documentos
-    //tiene que estar en el service
-    //La logica de tener que buscar los componentes y demas, no deberia estar en service??????
-    /* async obtenerTodasLasCarpetasDeUnNivel(Idcomponentes:Componente[]): Promise<Carpeta[]> {
-         
-        const componentes: Componente[] | null = [];
-        const repositorioComponente = new ComponenteRepository;
-        const carpetas: Carpeta[] | null = [];
+    async obtenerComponentesCarpeta(id:Types.ObjectId):Promise<Componente[] | null>{
+        const carpeta = await CarpetaModel.findOne({ _id: id }).lean<ICarpetaScheme>().exec();
+        const repositorioComponente= new ComponenteRepository();
+        const componentes : Componente[] = [];
 
-        for(const Idcomponente of Idcomponentes){
-            const componente = await repositorioComponente.obtenerPorId(Idcomponente.getId());
-            if (!componente){
-                continue;
-            }
+        if (!carpeta) return null;
+        for (const idComponente of carpeta.componentes){
+            const componente= await repositorioComponente.obtenerPorId(idComponente);
+            if (!componente) continue
             componentes.push(componente);
         }
+        return componentes;
+    }
+    async obtenerTodasLasCarpetasDeUnNivel(componentes:Componente[]): Promise<Carpeta[]> {
+        const carpetas: Carpeta[] | null = [];
+
         for(const componente of componentes){
             if (componente.getTipo() == "carpeta"){
-                const carpeta = await this.obtenerPorId(componente.getId(), componente);
+                const carpeta = await this.obtenerPorId(componente.getId(),componente);
                 if (carpeta) carpetas.push(carpeta);
             }
         }
         return carpetas;
-    } */
+    }
 
-    //La logica para actualizar la fecha tiene que estar en el servicio         
-    //datosActualizados.fechaUltimaModificacion = new Date();
     async actualizar(id: Types.ObjectId, datosActualizados: ICarpetaScheme): Promise<ICarpetaScheme | null> {
-        
-
         const carpetaActualizado = await CarpetaModel.findByIdAndUpdate({ _id: id  }, datosActualizados, { new: true }).lean<ICarpetaScheme>().exec();
 
         if (!carpetaActualizado) return null;
