@@ -19,25 +19,25 @@ export class Componente {
     public getId(): Types.ObjectId {
         return this.id;
     }
-    protected getNombre(): string {
+    public getNombre(): string {
         return this.nombre;
     }
-    protected getFechaCreacion(): Date {
+    public getFechaCreacion(): Date {
         return this.fechaCreacion;
     }
-    protected getFechaUltimaModificacion(): Date {
+    public getFechaUltimaModificacion(): Date {
         return this.fechaUltimaModificacion;
     }
-    protected getIdUsuario(): Types.ObjectId {
+    public getIdUsuario(): Types.ObjectId {
         return this.idUsuario;
     }
-    getTipo(): string {
+    public getTipo(): string {
         return this.tipo;
     }
-    protected setNombre(nombre: string): void {
+    public setNombre(nombre: string): void {
         this.nombre = nombre;
     }
-    protected setFechaUltimaModificacion(fechaUltimaModificacion: Date): void {
+    public setFechaUltimaModificacion(fechaUltimaModificacion: Date): void {
         this.fechaUltimaModificacion = fechaUltimaModificacion;
     }
 

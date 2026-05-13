@@ -9,14 +9,14 @@ import { Componente } from '../../Models/Componente.js';
 const componenteR = new ComponenteRepository();
 
 export class DocumentoRepository {
-    
+
     async crear(id: Types.ObjectId, estado: string, version: string): Promise<mongoose.Types.ObjectId> {
         const nuevoDoc = new DocumentoModel({
             _id: id,
             estado: estado,
             version: version
         });
-        
+
         const docGuardado = await nuevoDoc.save();
         return docGuardado._id;
     }
@@ -29,30 +29,38 @@ export class DocumentoRepository {
     }
 
 
-    async obtenerTodos(): Promise<Documento[]> {
+    async obtenerTodos(componentes: Componente[]): Promise<Documento[]> {
         const docs = await DocumentoModel.find().lean<IDocumentoScheme>().exec();
         const newDocs = [];
-        for (const doc in docs) {
-            const componente = componenteR.obtenerPorId(doc._id);
+        for (const doc of docs) {
+            const componente = componentes.find(c => c.getId().toString() === doc._id.toString());
+
             if (!componente) continue;
-            newDocs.push(new Documento(componente.getId(), componente.get, componente.fechaCreacion, componente.fechaUltimaModificacion, componente.getIdUsuario(), doc.estado, doc.version));
+            newDocs.push(new Documento(componente.getId(), componente.getNombre(), componente.getFechaCreacion(), componente.getFechaUltimaModificacion(), componente.getIdUsuario(), doc.estado, doc.version));
         }
         return newDocs;
     }
 
 
-    async actualizar(id: number, datosActualizados: Partial<IDocumentoScheme>): Promise<Documento | null> {
-        datosActualizados.fechaUltimaModificacion = new Date();
+    async actualizar(id: Types.ObjectId, docActualizado: Documento): Promise<Documento | null> {
 
-        const docActualizado = await DocumentoModel.findOneAndUpdate({ id }, datosActualizados, { new: true }).exec();
+        const datosActualizados = {
+            estado: docActualizado.getEstado(),
+            version: docActualizado.getVersion()
+        };
 
-        if (!docActualizado) return null;
-        return this.convertirADominio(docActualizado);
+        const doc = await DocumentoModel.findByIdAndUpdate(
+            id,
+            datosActualizados,
+            { new: true }
+        ).lean<IDocumentoScheme>().exec();
+        if (!doc) return null;
+        return docActualizado
     }
 
 
-    async eliminar(id: number): Promise<boolean> {
-        const resultado = await DocumentoModel.deleteOne({ id }).exec();
+    async eliminar(id: Types.ObjectId): Promise<boolean> {
+        const resultado = await DocumentoModel.deleteOne({ _id : id }).exec();
         return resultado.deletedCount === 1;
     }
 }

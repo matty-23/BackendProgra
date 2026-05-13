@@ -1,10 +1,11 @@
 import type { IDocumentoScheme } from "../../Interfaces/IDocumentoScheme.js";
 import mongoose, { Schema, type HydratedDocument } from "mongoose";
+import { Types } from "mongoose";
 
 export type DocumentoDocument = HydratedDocument<IDocumentoScheme>;
 
 const FileSchema = new Schema<IDocumentoScheme>({
-    contenido: { type: String, default: "" },
+    _id = {type: Types.ObjectId},
     estado: { type: String},
 
     version: { type: String, default: "1.0" }
