@@ -7,7 +7,7 @@ export class Componente {
     private idUsuario: Types.ObjectId;
     private tipo: string;
 
-    constructor(id: number, nombre: string, fechaCreacion: Date, fechaUltimaModificacion: Date, idUsuario: number, tipo: string) {
+    constructor(id: Types.ObjectId, nombre: string, fechaCreacion: Date, fechaUltimaModificacion: Date, idUsuario: Types.ObjectId, tipo: string) {
         this.id = id,
         this.nombre = nombre,
         this.fechaCreacion = fechaCreacion,
@@ -16,7 +16,7 @@ export class Componente {
         this.tipo = tipo
     }
 
-    public getId(): number {
+    public getId(): Types.ObjectId {
         return this.id;
     }
     protected getNombre(): string {
@@ -28,7 +28,7 @@ export class Componente {
     protected getFechaUltimaModificacion(): Date {
         return this.fechaUltimaModificacion;
     }
-    protected getIdUsuario(): number {
+    protected getIdUsuario(): Types.ObjectId {
         return this.idUsuario;
     }
     getTipo(): string {

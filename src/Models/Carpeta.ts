@@ -8,7 +8,7 @@ export class Carpeta extends Componente {
     private ReadMe: string;
     private ruta: string;
 
-    constructor(_id: number, nombre: string, fechaCreacion: Date, fechaUltimaModificacion: Date, idUsuario: number, ReadMe: string, componentes? : Componente[]) {
+    constructor(_id: Types.ObjectId, nombre: string, fechaCreacion: Date, fechaUltimaModificacion: Date, idUsuario: Types.ObjectId, ReadMe: string, componentes? : Componente[]) {
         super(_id, nombre, fechaCreacion, fechaUltimaModificacion, idUsuario, "carpeta");
         this.componentes = componentes || [];
         this.ReadMe = ReadMe;
@@ -24,7 +24,7 @@ export class Carpeta extends Componente {
         return super.getFechaUltimaModificacion();
     }
 
-    getIdUsuario(): number {
+    getIdUsuario(): Types.ObjectId {
         return super.getIdUsuario();
     }
     getComponentes(): Componente[] {
@@ -52,7 +52,7 @@ export class Carpeta extends Componente {
         this.componentes.push(componente);
     }
 
-    EliminarElemento(id: number): void {
+    EliminarElemento(id: Types.ObjectId): void {
         this.componentes = this.componentes.filter(c => c.getId() == id);
     }
 
