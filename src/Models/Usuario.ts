@@ -1,4 +1,5 @@
 import { ObjectId } from "mongodb";
+import type { Types } from "mongoose";
 export class Usuario {
     private _id: ObjectId;
     private nombre: string;
@@ -8,7 +9,7 @@ export class Usuario {
     private password: string;
     private fechaCreacion: Date;
 
-    constructor(id: number, nombre: string, apellido: string, email: string, username: string, password: string) {
+    constructor(id:Types.ObjectId, nombre: string, apellido: string, email: string, username: string, password: string) {
         this._id = id;
         this.nombre = nombre;
         this.apellido = apellido;
@@ -18,7 +19,7 @@ export class Usuario {
         this.fechaCreacion = new Date();
     }
 
-    getId(): number {
+    getId(): Types.ObjectId {
         return this._id;
     }
     getNombre(): string {

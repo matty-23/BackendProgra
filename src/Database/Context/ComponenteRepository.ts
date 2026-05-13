@@ -62,7 +62,7 @@ export class ComponenteRepository {
 
     }
     async obtenerPorId(id: Types.ObjectId): Promise<Componente | null> {
-        const componente = await ComponenteModel.findOne({ id }).lean<Componente>();
+        const componente = await ComponenteModel.findOne({ _id: id  }).lean<Componente>();
         if (!componente) return null;
 
         return componente;
@@ -75,16 +75,16 @@ export class ComponenteRepository {
         const componentes = await ComponenteModel.find({ tipo }).lean<Componente[]>();
         return componentes;
     }
-    async actualizar(id: number, datosActualizados: Partial<IComponenteScheme>): Promise<Componente | null> {
+    async actualizar(id: Types.ObjectId, datosActualizados: Partial<IComponenteScheme>): Promise<Componente | null> {
         datosActualizados.fechaUltimaModificacion = new Date();
 
-        const componenteActualizado = await ComponenteModel.findOneAndUpdate({ id }, datosActualizados, { new: true }).lean<Componente>();
+        const componenteActualizado = await ComponenteModel.findOneAndUpdate({ _id: id  }, datosActualizados, { new: true }).lean<Componente>();
 
         if (!componenteActualizado) return null;
         return componenteActualizado;
     }
     async eliminar(id: Types.ObjectId): Promise<boolean> {
-        const resultado = await ComponenteModel.deleteOne({ id }).exec();
+        const resultado = await ComponenteModel.deleteOne({ _id: id  }).exec();
         return resultado.deletedCount === 1;
     }
 

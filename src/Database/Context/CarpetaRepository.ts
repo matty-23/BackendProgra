@@ -4,7 +4,6 @@ import mongoose, {  Types, type ObjectId } from 'mongoose';
 import type { ICarpetaScheme } from '../../Interfaces/ICarpetaScheme.js';
 import { Componente } from '../../Models/Componente.js';
 import { ComponenteRepository } from './ComponenteRepository.js';
-import { DocumentoRepository } from './DocumentoRepository.js';
 
 export class CarpetaRepository {
 
@@ -58,7 +57,7 @@ export class CarpetaRepository {
     async actualizar(id: Types.ObjectId, datosActualizados: ICarpetaScheme): Promise<ICarpetaScheme | null> {
         
 
-        const carpetaActualizado = await CarpetaModel.findByIdAndUpdate({ id }, datosActualizados, { new: true }).lean<ICarpetaScheme>().exec();
+        const carpetaActualizado = await CarpetaModel.findByIdAndUpdate({ _id: id  }, datosActualizados, { new: true }).lean<ICarpetaScheme>().exec();
 
         if (!carpetaActualizado) return null;
         return carpetaActualizado;
