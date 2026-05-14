@@ -34,7 +34,7 @@ export class CarpetaRepository {
 
         if (!carpeta) return null;
         for (const idComponente of carpeta.componentes){
-            const componente= await repositorioComponente.obtenerPorId(idComponente);
+            const componente= await repositorioComponente.obtenerPorId(idComponente.toString());
             if (!componente) continue
             componentes.push(componente);
         }

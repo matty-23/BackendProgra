@@ -6,42 +6,7 @@ import { ClientSession, ObjectId } from "mongodb";
 
 export class ComponenteRepository {
 
-    async crearComponenteCarpetaPrincipal(idUsuario:ObjectId,session?: ClientSession): Promise<void> {
-        try {
-            const nuevoComponente = new ComponenteModel({
-                nombre: idUsuario.toString(),
-                fechaCreacion: Date.now(),
-                fechaUltimaModificacion: Date.now(),
-                idUsuario: idUsuario,
-                tipo: "carpeta"
-            });
-            await nuevoComponente.save({...(session ? { session } : {})});
-        } catch (error) {
-            throw error;
-        }
-    }
-    //Pasamos la logica de creacion de las carpetas hijas al servicio
-    async crearComponenteCarpeta(nombre: string, idUsuario: ObjectId,session?: ClientSession): Promise<Types.ObjectId> {
-
-        try {
-            const nuevoComponente = new ComponenteModel({
-                nombre: nombre,
-                fechaCreacion: Date.now(),
-                fechaUltimaModificacion: Date.now(),
-                idUsuario: idUsuario,
-                tipo: "carpeta",
-            });
-
-            const docGuardado = await nuevoComponente.save({ ...(session ? { session } : {}), validateBeforeSave: false });
-            await nuevoComponente.save({ ...(session ? { session } : {})});
-            return docGuardado._id;
-
-        } catch (error) {
-            throw error;
-        } 
-
-    }
-    async crearComponenteDocumento(nombre: string, idUsuario: ObjectId,session?: ClientSession): Promise<Types.ObjectId>{
+    async crearComponente(nombre: string, idUsuario: string,tipo: string, session?: ClientSession): Promise<Types.ObjectId>{
         
         try {
             const nuevoComponente = new ComponenteModel({
@@ -49,7 +14,7 @@ export class ComponenteRepository {
                 fechaCreacion: Date.now(),
                 fechaUltimaModificacion: Date.now(),
                 idUsuario: idUsuario,
-                tipo: "documento"
+                tipo: tipo
             });
 
             const docGuardado = await nuevoComponente.save({ ...(session ? { session } : {}), validateBeforeSave: false }); // Pasamos la sesión
@@ -61,8 +26,8 @@ export class ComponenteRepository {
         } 
 
     }
-    async obtenerPorId(id: Types.ObjectId): Promise<Componente | null> {
-        const componente = await ComponenteModel.findOne({ _id: id  }).lean<Componente>();
+    async obtenerPorId(id: string): Promise<Componente | null> {
+        const componente = await ComponenteModel.findOne({ _id: new Types.ObjectId(id)  }).lean<Componente>();
         if (!componente) return null;
 
         return componente;
@@ -75,16 +40,16 @@ export class ComponenteRepository {
         const componentes = await ComponenteModel.find({ tipo }).lean<Componente[]>();
         return componentes;
     }
-    async actualizar(id: Types.ObjectId, datosActualizados: Partial<IComponenteScheme>): Promise<Componente | null> {
+    async actualizar(id: string, datosActualizados: Partial<IComponenteScheme>): Promise<Componente | null> {
         datosActualizados.fechaUltimaModificacion = new Date();
 
-        const componenteActualizado = await ComponenteModel.findOneAndUpdate({ _id: id  }, datosActualizados, { new: true }).lean<Componente>();
+        const componenteActualizado = await ComponenteModel.findOneAndUpdate({ _id: new Types.ObjectId(id)  }, datosActualizados, { new: true }).lean<Componente>();
 
         if (!componenteActualizado) return null;
         return componenteActualizado;
     }
-    async eliminar(id: Types.ObjectId): Promise<boolean> {
-        const resultado = await ComponenteModel.deleteOne({ _id: id  }).exec();
+    async eliminar(id: string): Promise<boolean> {
+        const resultado = await ComponenteModel.deleteOne({ _id: new Types.ObjectId(id)   }).exec();
         return resultado.deletedCount === 1;
     }
 

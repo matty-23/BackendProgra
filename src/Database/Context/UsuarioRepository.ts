@@ -2,7 +2,7 @@ import {ComponenteRepository} from "./ComponenteRepository.js";
 import { UsuarioModel } from "../Schemes/UsuarioScheme.js";
 import { Usuario } from "../../Models/Usuario.js";
 import type { ClientSession, ObjectId, Types } from "mongoose";
-import mongoose from 'mongoose';
+
 
 export class UsuarioRepository {
 
@@ -18,14 +18,14 @@ export class UsuarioRepository {
                 fechaCreacion: usuario.getFechaCreacion()
             });
             const UsuarioNuevo =  await nuevoUsuario.save({ ...(session ? { session } : {}) });
-            await componenteRepository.crearComponenteCarpetaPrincipal(UsuarioNuevo._id, session);
+            await componenteRepository.crearComponente(UsuarioNuevo._id.toString(),UsuarioNuevo._id.toString(),"carpeta" ,session);
             return UsuarioNuevo._id;
         } catch (error) {
             throw error;
         } 
     }
     
-    async obtenerUsuarioPorId(id: Types.ObjectId): Promise<Usuario> {
+    async obtenerUsuarioPorId(id: string): Promise<Usuario> {
         //El lead<Usuario> convirte el documento Mongo a un objeto
         const usuario = await UsuarioModel.findById(id).lean<Usuario>();
         if (!usuario) {
@@ -40,10 +40,10 @@ export class UsuarioRepository {
         }
         return usuario;
     }
-    async actualizarUsuario(id: Types.ObjectId, usuario: Partial<Usuario>): Promise<void> {
+    async actualizarUsuario(id: string, usuario: Partial<Usuario>): Promise<void> {
         await UsuarioModel.findByIdAndUpdate(id, usuario);
     }
-    async eliminarUsuario(id: Types.ObjectId): Promise<void> {
+    async eliminarUsuario(id: string): Promise<void> {
         await UsuarioModel.findByIdAndDelete(id);
     }
 }

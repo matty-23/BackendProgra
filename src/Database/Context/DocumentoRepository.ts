@@ -10,7 +10,7 @@ const componenteR = new ComponenteRepository();
 
 export class DocumentoRepository {
 
-    async crear(id: Types.ObjectId, estado: string, version: string): Promise<mongoose.Types.ObjectId> {
+    async crear(id: string, estado: string, version: string): Promise<mongoose.Types.ObjectId> {
         const nuevoDoc = new DocumentoModel({
             _id: id,
             estado: estado,
@@ -22,7 +22,7 @@ export class DocumentoRepository {
     }
 
 
-    async obtenerPorId(id: Types.ObjectId, componente: Componente): Promise<Documento | null> {
+    async obtenerPorId(id: string, componente: Componente): Promise<Documento | null> {
         const doc = await DocumentoModel.findById(id).lean<IDocumentoScheme>().exec();
         if (!doc) return null;
         return new Documento(componente.getId(), componente.getNombre(), componente.getFechaCreacion(), componente.getFechaUltimaModificacion(), componente.getIdUsuario(), doc.estado, doc.version)
@@ -30,10 +30,11 @@ export class DocumentoRepository {
 
 
     async obtenerTodos(componentes: Componente[]): Promise<Documento[]> {
-        const docs = await DocumentoModel.find().lean<IDocumentoScheme>().exec();
+        const repositorioComponente = new ComponenteRepository();
+        const docs = await repositorioComponente.obtenerTodos();
         const newDocs = [];
         for (const doc of docs) {
-            const componente = componentes.find(c => c.getId().toString() === doc._id.toString());
+            const componente = componentes.find(c => c.getId() === doc.getId());
 
             if (!componente) continue;
             newDocs.push(new Documento(componente.getId(), componente.getNombre(), componente.getFechaCreacion(), componente.getFechaUltimaModificacion(), componente.getIdUsuario(), doc.estado, doc.version));
@@ -42,7 +43,7 @@ export class DocumentoRepository {
     }
 
 
-    async actualizar(id: Types.ObjectId, docActualizado: Documento): Promise<Documento | null> {
+    async actualizar(id: string, docActualizado: Documento): Promise<Documento | null> {
 
         const datosActualizados = {
             estado: docActualizado.getEstado(),
@@ -59,7 +60,7 @@ export class DocumentoRepository {
     }
 
 
-    async eliminar(id: Types.ObjectId): Promise<boolean> {
+    async eliminar(id: string): Promise<boolean> {
         const resultado = await DocumentoModel.deleteOne({ _id : id }).exec();
         return resultado.deletedCount === 1;
     }
