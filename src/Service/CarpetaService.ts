@@ -40,7 +40,7 @@ export class CarpetaService extends ICarpetaService {
         const session = await mongoose.startSession();
         session.startTransaction();
         try { 
-            const idCarpeta = await this._carpetaRepo.crear(carpetaDto.ReadMe,carpetaDto.id,carpet);
+            const idCarpeta = await this._carpetaRepo.crear(carpetaDto.ReadMe,carpetaDto.id,[]);
             const nuevoComponente = new Componente(idCarpeta.toString(), carpetaDto.nombre, carpetaDto.fechaCreacion, carpetaDto.fechaUltimaModificacion, carpetaDto.idUsuario, "carpeta");
             await this._componenteRepo.crearComponente(nuevoComponente.getNombre(), nuevoComponente.getIdUsuario(), nuevoComponente.getTipo(), session);
             await session.commitTransaction();
@@ -57,10 +57,15 @@ export class CarpetaService extends ICarpetaService {
     }
 
     async updateCarpeta(carpetaDto: CarpetaDto): Promise<boolean> {
-        const resultado = await this._carpetaRepo.actualizar(carpetaDto.id, {
-            nombre: carpetaDto.nombre,
-            ReadMe: carpetaDto.ReadMe,
-        });
+        const componenteExistente = await this._componenteRepo.obtenerPorId(carpetaDto.id);
+        if (!componenteExistente) {
+            throw new Error("Componente no encontrado");
+        }
+        const carpetaExistente = await this._carpetaRepo.obtenerPorId(carpetaDto.id, componenteExistente);
+        if (!carpetaExistente) {
+            throw new Error("Carpeta no encontrada");
+        }
+        const resultado = await this._carpetaRepo.actualizar(carpetaDto.id, carpetaExistente);
         
         return resultado !== null;
     }
@@ -69,11 +74,11 @@ export class CarpetaService extends ICarpetaService {
         return await this._carpetaRepo.eliminar(id);
     }
 
-    async getComponentesCarpeta(carpetaId: string): Promise<(Carpeta | Documento)[]> {
-        const idComponente =
-        const carpetaDoc = await this._carpetaRepo.obtenerPorId(carpetaId);
-        if (!carpetaDoc) throw new Error("Carpeta no encontrada");
-
-        throw new Error("Lógica de filtrado de componentes hijos pendiente de definir en Repository");
+    async getComponentesCarpeta(carpetaId: string): Promise<Componente[]> {
+       const carpetas = await this._carpetaRepo.obtenerComponentesCarpeta(carpetaId);
+       if (!carpetas) {
+        throw new Error("Carpeta no encontrada");
+       }
+        return carpetas;
     }
 }
