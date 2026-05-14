@@ -11,58 +11,65 @@ export class CarpetaService extends ICarpetaService {
     private _carpetaRepo = new CarpetaRepository();
     private _componenteRepo = new ComponenteRepository();  
 
-    async getCarpetas(): Promise<Carpeta[]> {
-        return await this._carpetaRepo.obtenerTodos();
+    async getCarpetasUsuario(idUsuario: string): Promise<Carpeta[]> {
+        
+        const carpetas = await this._carpetaRepo.obtenerComponentesCarpeta(idUsuario);
+        
+        return this._carpetaRepo.obtenerTodasLasCarpetasDeUnNivel(carpetas || []);
     }
 
-    async getCarpetaById(id: number): Promise<Carpeta> {
-        const carpeta = await this._carpetaRepo.obtenerPorId(id);
+    async getCarpetaById(id: string): Promise<Carpeta> {
+        const componente = await this._componenteRepo.obtenerPorId(id.toString());
+        if (!componente) {
+            throw new Error("Componente no encontrado");
+        }
+        const carpeta = await this._carpetaRepo.obtenerPorId(id,componente);
         if (!carpeta) {
             throw new Error("Carpeta no encontrada");
+        }
+        const componentesHijos = await this._carpetaRepo.obtenerComponentesCarpeta(id);
+        if (!componentesHijos) return carpeta;
+        for (const c of componentesHijos) {
+            if (!c) continue;
+            carpeta.AñadirElemento(c);
         }
         return carpeta;
     }
 
     async addCarpeta(carpetaDto: CarpetaDto): Promise<Carpeta> {
-        const nuevaCarpeta = new Carpeta(
-            carpetaDto.id,
-            carpetaDto.nombre,
-            new Date(),
-            new Date(),
-            carpetaDto.idUsuario,
-            carpetaDto.idPadre ? new mongoose.Types.ObjectId(carpetaDto.idPadre) : null,
-            carpetaDto.ReadMe
-        );
+        const session = await mongoose.startSession();
+        session.startTransaction();
+        try { 
+            const idCarpeta = await this._carpetaRepo.crear(carpetaDto.ReadMe,carpetaDto.id,carpet);
+            const nuevoComponente = new Componente(idCarpeta.toString(), carpetaDto.nombre, carpetaDto.fechaCreacion, carpetaDto.fechaUltimaModificacion, carpetaDto.idUsuario, "carpeta");
+            await this._componenteRepo.crearComponente(nuevoComponente.getNombre(), nuevoComponente.getIdUsuario(), nuevoComponente.getTipo(), session);
+            await session.commitTransaction();
+            return new Carpeta(nuevoComponente.getId(), nuevoComponente.getNombre(), nuevoComponente.getFechaCreacion(), nuevoComponente.getFechaUltimaModificacion(), nuevoComponente.getIdUsuario(), carpetaDto.ReadMe, []);
+        
+        } catch (error) {
+            await session.abortTransaction();
+            session.endSession();
+            throw error;
+        }finally {
+            session.endSession();
+        }
 
-        const componente = new Componente(
-            carpetaDto.id,
-            carpetaDto.nombre,
-            nuevaCarpeta.getFechaCreacion(),
-            nuevaCarpeta.getFechaUltimaModificacion(),
-            carpetaDto.idUsuario,
-            nuevaCarpeta.getIdPadre(),
-            "carpeta"
-        );
-
-        await this._componenteRepo.crearComponenteCarpeta(componente, nuevaCarpeta);
-        return nuevaCarpeta;
     }
 
     async updateCarpeta(carpetaDto: CarpetaDto): Promise<boolean> {
         const resultado = await this._carpetaRepo.actualizar(carpetaDto.id, {
             nombre: carpetaDto.nombre,
             ReadMe: carpetaDto.ReadMe,
-            idPadre: carpetaDto.idPadre ? new mongoose.Types.ObjectId(carpetaDto.idPadre) : null
         });
         
         return resultado !== null;
     }
 
-    async deleteCarpeta(id: number): Promise<boolean> {
+    async deleteCarpeta(id: string): Promise<boolean> {
         return await this._carpetaRepo.eliminar(id);
     }
 
-    async getComponentesCarpeta(carpetaId: number): Promise<(Carpeta | Documento)[]> {
+    async getComponentesCarpeta(carpetaId: string): Promise<(Carpeta | Documento)[]> {
         const idComponente =
         const carpetaDoc = await this._carpetaRepo.obtenerPorId(carpetaId);
         if (!carpetaDoc) throw new Error("Carpeta no encontrada");
