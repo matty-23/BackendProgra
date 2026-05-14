@@ -8,8 +8,9 @@ import { ComponenteRepository } from './ComponenteRepository.js';
 export class CarpetaRepository {
 
     
-    async crear(ReadMe: string,id: Types.ObjectId, componentes: Componente[]): Promise<Types.ObjectId>{
-        const componentesIds: Types.ObjectId[] = componentes.map(c => c.getId());
+    async crear(ReadMe: string,id: string, componentes: Componente[]): Promise<Types.ObjectId>{
+        const componentesIds: Types.ObjectId[] = componentes.map(c => new Types.ObjectId(c.getId()));
+
         const nuevaCarpeta = new CarpetaModel({
             _id: id,
             ReadMe: ReadMe,
@@ -19,16 +20,15 @@ export class CarpetaRepository {
         const carpetaCreada = await nuevaCarpeta.save();
         return carpetaCreada._id;
     }
-
-    async obtenerPorId(id: Types.ObjectId,componente:Componente): Promise<Carpeta | null> {
-        const carpeta = await CarpetaModel.findOne({ _id: id }).lean<Carpeta>().exec();
+    async obtenerPorId(id: string,componente:Componente): Promise<Carpeta | null> {
+        const carpeta = await CarpetaModel.findOne({ _id: new Types.ObjectId(id) }).lean<Carpeta>().exec();
         if (!carpeta) return null;
         const carpetaActualizada=new Carpeta(componente.getId(),componente['nombre'], componente['fechaCreacion'],componente['fechaUltimaModificacion'],componente['idUsuario'],carpeta.getReadMe(),[]);
         return carpetaActualizada;
     }
 
-    async obtenerComponentesCarpeta(id:Types.ObjectId):Promise<Componente[] | null>{
-        const carpeta = await CarpetaModel.findOne({ _id: id }).lean<ICarpetaScheme>().exec();
+    async obtenerComponentesCarpeta(id:string):Promise<Componente[] | null>{
+        const carpeta = await CarpetaModel.findOne({ _id: new Types.ObjectId(id) }).lean<ICarpetaScheme>().exec();
         const repositorioComponente= new ComponenteRepository();
         const componentes : Componente[] = [];
 
@@ -52,17 +52,17 @@ export class CarpetaRepository {
         return carpetas;
     }
 
-    async actualizar(id: Types.ObjectId, datosActualizados: ICarpetaScheme): Promise<ICarpetaScheme | null> {
-        const carpetaActualizado = await CarpetaModel.findByIdAndUpdate({ _id: id  }, datosActualizados, { new: true }).lean<ICarpetaScheme>().exec();
+    async actualizar(id: string, datosActualizados: Carpeta): Promise<Carpeta | null> {
+        const carpetaActualizado = await CarpetaModel.findByIdAndUpdate({ _id:  new Types.ObjectId(id)  }, {datosActualizados}, { new: true }).lean<Carpeta>().exec();
 
         if (!carpetaActualizado) return null;
         return carpetaActualizado;
     }
 
     //Mismo caso, la logica para eliminar el respectivo componente tiene que estar en servicio
-    async eliminar(id: Types.ObjectId): Promise<boolean> {
+    async eliminar(id: string): Promise<boolean> {
         //Comprobar si la busqueda del ID esta bien
-        const resultado = await CarpetaModel.deleteOne({ _id: id }).exec();
+        const resultado = await CarpetaModel.deleteOne({ _id:  new Types.ObjectId(id) }).exec();
         return resultado.deletedCount === 1;
     }
 }

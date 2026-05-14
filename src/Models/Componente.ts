@@ -1,13 +1,13 @@
-import type { Types } from "mongoose";
+
 export class Componente {
-    private id: Types.ObjectId; 
+    private id: string; 
     private nombre: string;
     private fechaCreacion: Date;
     private fechaUltimaModificacion: Date
-    private idUsuario: Types.ObjectId;
+    private idUsuario: string;
     private tipo: string;
 
-    constructor(id: Types.ObjectId, nombre: string, fechaCreacion: Date, fechaUltimaModificacion: Date, idUsuario: Types.ObjectId, tipo: string) {
+    constructor(id: string, nombre: string, fechaCreacion: Date, fechaUltimaModificacion: Date, idUsuario: string, tipo: string) {
         this.id = id,
         this.nombre = nombre,
         this.fechaCreacion = fechaCreacion,
@@ -16,7 +16,7 @@ export class Componente {
         this.tipo = tipo
     }
 
-    public getId(): Types.ObjectId {
+    public getId(): string {
         return this.id;
     }
     public getNombre(): string {
@@ -28,7 +28,7 @@ export class Componente {
     public getFechaUltimaModificacion(): Date {
         return this.fechaUltimaModificacion;
     }
-    public getIdUsuario(): Types.ObjectId {
+    public getIdUsuario(): string {
         return this.idUsuario;
     }
     public getTipo(): string {

@@ -1,16 +1,15 @@
 import { Componente } from './Componente.js';
-import type { Types } from "mongoose";
 export class Documento extends Componente {
     private estado: string;
     private version: string;
 
-    constructor(id: Types.ObjectId, nombre: string, fechaCreacion: Date, fechaUltimaModificacion: Date, idUsuario: Types.ObjectId, estado: string, version: string) {
+    constructor(id: string, nombre: string, fechaCreacion: Date, fechaUltimaModificacion: Date, idUsuario: string, estado: string, version: string) {
         super(id, nombre, fechaCreacion, fechaUltimaModificacion, idUsuario, "documento");
         this.estado = estado;
         this.version = version;
     }
 
-    getId(): Types.ObjectId {
+    getId(): string {
         return super.getId();
     }
 
@@ -29,7 +28,7 @@ export class Documento extends Componente {
     getFechaUltimaModificacion(): Date {
         return super.getFechaUltimaModificacion();
     }
-    getIdUsuario(): Types.ObjectId {
+    getIdUsuario(): string {
         return super.getIdUsuario();
     }
 
