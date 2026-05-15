@@ -30,13 +30,11 @@ export class DocumentoRepository {
 
 
     async obtenerTodos(componentes: Componente[]): Promise<Documento[]> {
-        const repositorioComponente = new ComponenteRepository();
-        const docs = await repositorioComponente.obtenerTodos();
         const newDocs = [];
-        for (const doc of docs) {
-            const componente = componentes.find(c => c.getId() === doc.getId());
-
-            if (!componente) continue;
+        for (const componente of componentes) {
+            if (componente.getTipo() !== "documento") continue;
+            const doc = await DocumentoModel.findById(componente.getId()).lean<IDocumentoScheme>().exec();
+            if (!doc) continue;
             newDocs.push(new Documento(componente.getId(), componente.getNombre(), componente.getFechaCreacion(), componente.getFechaUltimaModificacion(), componente.getIdUsuario(), doc.estado, doc.version));
         }
         return newDocs;
