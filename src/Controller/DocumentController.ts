@@ -1,9 +1,9 @@
-import type { IDocumentoService } from '../Interfaces/IDocumentoService.js';
+import { IDocumentoService } from '../Interfaces/IDocumentoService.js';
 import { Controller, Get, Param, NotFoundException, Post, Body, BadRequestException, HttpCode, Put, Delete } from '@nestjs/common';
 import { DocumentoDto } from '../DTO/DocumentoDTO.js';
 import { Documento } from '../Models/Documento.js';
 
-@Controller('api/Documentos')
+@Controller('Documentos')
 export class DocumentoController {
 
     constructor(private readonly _documentoService: IDocumentoService) { }
@@ -18,8 +18,6 @@ export class DocumentoController {
             fechaCreacion: c.getFechaCreacion(),
             fechaUltimaModificacion: c.getFechaUltimaModificacion(),
             idUsuario: c.getIdUsuario(),
-            idPadre: c.getIdPadre(),
-            contenido: c.getContenido(),
             estado: c.getEstado(),
             version: c.getVersion()
         } as DocumentoDto));
@@ -29,11 +27,10 @@ export class DocumentoController {
 
     @Get(':id')
     async getById(@Param('id') id: string): Promise<DocumentoDto> {
-        const idDoc = parseInt(id, 10);
-        const Documento = await this._documentoService.getDocumentoById(idDoc);
+        const Documento = await this._documentoService.getDocumentoById(id);
 
         if (!Documento) {
-            throw new NotFoundException(`Documento con ID ${idDoc} no encontrado.`);
+            throw new NotFoundException(`Documento con ID ${id} no encontrado.`);
         }
 
         const DocumentoDto: DocumentoDto = {
@@ -42,7 +39,6 @@ export class DocumentoController {
             fechaCreacion: Documento.getFechaCreacion(),
             fechaUltimaModificacion: Documento.getFechaUltimaModificacion(),
             idUsuario: Documento.getIdUsuario(),
-            contenido: Documento.getContenido(),
             estado: Documento.getEstado(),
             version: Documento.getVersion()
         };
@@ -65,7 +61,6 @@ export class DocumentoController {
             fechaCreacion: Documento.getFechaCreacion(),
             fechaUltimaModificacion: Documento.getFechaUltimaModificacion(),
             idUsuario: Documento.getIdUsuario(),
-            contenido: Documento.getContenido(),
             estado: Documento.getEstado(),
             version: Documento.getVersion()
         };
@@ -74,19 +69,17 @@ export class DocumentoController {
 
     @Put(':id')
     async actualizar(@Param('id') id: string, @Body() doc: DocumentoDto): Promise<void> {
-        const idDoc = parseInt(id, 10);
-        const actualizado = await this._documentoService.updateDocumento({ ...doc, id: idDoc });
+        const actualizado = await this._documentoService.updateDocumento({ ...doc, id: id });
         if (!actualizado) {
-            throw new NotFoundException(`Documento con ID ${idDoc} no encontrado para actualizar.`);
+            throw new NotFoundException(`Documento con ID ${id} no encontrado para actualizar.`);
         }
     }
 
     @Delete(':id')
     async eliminar(@Param('id') id: string): Promise<void> {
-        const idDoc = parseInt(id, 10);
-        const eliminado = await this._documentoService.deleteDocumento(idDoc);
+        const eliminado = await this._documentoService.deleteDocumento(id);
         if (!eliminado) {
-            throw new NotFoundException(`Documento con ID ${idDoc} no encontrado para eliminar.`);
+            throw new NotFoundException(`Documento con ID ${id} no encontrado para eliminar.`);
         }
     }
 

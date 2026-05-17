@@ -12,6 +12,9 @@ export class Carpeta extends Componente {
         this.ReadMe = ReadMe;
         this.ruta = "";
     }
+    getId(): string {
+        return super.getId();
+    }
     getNombre(): string {
         return super.getNombre();
     }
