@@ -5,9 +5,8 @@ import { Types } from "mongoose";
 export type DocumentoDocument = HydratedDocument<IDocumentoScheme>;
 
 const FileSchema = new Schema<IDocumentoScheme>({
-    _id = {type: Types.ObjectId},
-    estado: { type: String},
-
+    _id: { type: Types.ObjectId },
+    estado: { type: String },
     version: { type: String, default: "1.0" }
 
 }, {
