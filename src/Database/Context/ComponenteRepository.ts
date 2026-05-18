@@ -6,50 +6,16 @@ import { ClientSession, ObjectId } from "mongodb";
 
 export class ComponenteRepository {
 
-    async crearComponenteCarpetaPrincipal(idUsuario:ObjectId,session?: ClientSession): Promise<void> {
-        try {
-            const nuevoComponente = new ComponenteModel({
-                nombre: idUsuario.toString(),
-                fechaCreacion: Date.now(),
-                fechaUltimaModificacion: Date.now(),
-                idUsuario: idUsuario,
-                tipo: "carpeta"
-            });
-            await nuevoComponente.save({...(session ? { session } : {})});
-        } catch (error) {
-            throw error;
-        }
-    }
-    //Pasamos la logica de creacion de las carpetas hijas al servicio
-    async crearComponenteCarpeta(nombre: string, idUsuario: ObjectId,session?: ClientSession): Promise<Types.ObjectId> {
-
-        try {
-            const nuevoComponente = new ComponenteModel({
-                nombre: nombre,
-                fechaCreacion: Date.now(),
-                fechaUltimaModificacion: Date.now(),
-                idUsuario: idUsuario,
-                tipo: "carpeta",
-            });
-
-            const docGuardado = await nuevoComponente.save({ ...(session ? { session } : {}), validateBeforeSave: false });
-            await nuevoComponente.save({ ...(session ? { session } : {})});
-            return docGuardado._id;
-
-        } catch (error) {
-            throw error;
-        } 
-
-    }
-    async crearComponenteDocumento(nombre: string, idUsuario: ObjectId,session?: ClientSession): Promise<Types.ObjectId>{
+    async crearComponente(nombre: string, idUsuario: string,tipo: string, session?: ClientSession): Promise<Types.ObjectId>{
         
         try {
             const nuevoComponente = new ComponenteModel({
+                _id: new mongoose.Types.ObjectId(),
                 nombre: nombre,
                 fechaCreacion: Date.now(),
                 fechaUltimaModificacion: Date.now(),
                 idUsuario: idUsuario,
-                tipo: "documento"
+                tipo: tipo
             });
 
             const docGuardado = await nuevoComponente.save({ ...(session ? { session } : {}), validateBeforeSave: false }); // Pasamos la sesión
@@ -61,31 +27,57 @@ export class ComponenteRepository {
         } 
 
     }
-    async obtenerPorId(id: number): Promise<Componente | null> {
-        const componente = await ComponenteModel.findOne({ id }).lean<Componente>();
+    async obtenerPorId(id: string): Promise<Componente | null> {
+        const componente = await ComponenteModel.findOne({ _id: new Types.ObjectId(id) }).lean<IComponenteScheme>();
         if (!componente) return null;
 
-        return componente;
+        return new Componente(
+            componente._id.toString(), 
+            componente.nombre, 
+            componente.fechaCreacion, 
+            componente.fechaUltimaModificacion, 
+            componente.idUsuario.toString(),
+            componente.tipo
+        );
     }
     async obtenerTodos(): Promise<Componente[]> {
-        const componentes = await ComponenteModel.find().lean<Componente[]>();
-        return componentes;
+    const componentes = await ComponenteModel.find().lean<IComponenteScheme[]>();
+       return componentes.map(c => new Componente(
+            c._id.toString(),
+            c.nombre,
+            c.fechaCreacion,
+            c.fechaUltimaModificacion,
+            c.idUsuario.toString(),
+            c.tipo
+        ));
     }
     async obtenerComponentesPorTipo(tipo: string): Promise<Componente[]> {
-        const componentes = await ComponenteModel.find({ tipo }).lean<Componente[]>();
-        return componentes;
+        const componentes = await ComponenteModel.find({ tipo }).lean<IComponenteScheme[]>();
+        return componentes.map(c => new Componente(
+            c._id.toString(),
+            c.nombre,
+            c.fechaCreacion,
+            c.fechaUltimaModificacion,
+            c.idUsuario.toString(),
+            c.tipo
+        ));
     }
-    async actualizar(id: number, datosActualizados: Partial<IComponenteScheme>): Promise<Componente | null> {
-        datosActualizados.fechaUltimaModificacion = new Date();
+    async actualizar(id: string, datosActualizados: Componente): Promise<Componente | null> {
+        datosActualizados.setFechaUltimaModificacion(new Date());
 
-        const componenteActualizado = await ComponenteModel.findOneAndUpdate({ id }, datosActualizados, { new: true }).lean<Componente>();
-
+        const componenteActualizado = await ComponenteModel.findOneAndUpdate({ _id: new Types.ObjectId(id) },{...datosActualizados},{ new: true }).exec();
         if (!componenteActualizado) return null;
-        return componenteActualizado;
+        return new Componente(
+        componenteActualizado.id,
+        componenteActualizado.nombre,
+        componenteActualizado.fechaCreacion,
+        componenteActualizado.fechaUltimaModificacion,
+        componenteActualizado.idUsuario.toString(),
+        componenteActualizado.tipo
+    );
     }
-    async eliminar(id: number): Promise<boolean> {
-        const resultado = await ComponenteModel.deleteOne({ id }).exec();
+    async eliminar(id: string): Promise<boolean> {
+        const resultado = await ComponenteModel.deleteOne({ _id: new Types.ObjectId(id)   }).exec();
         return resultado.deletedCount === 1;
     }
-
 }

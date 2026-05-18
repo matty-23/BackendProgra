@@ -1,6 +1,4 @@
-import { setUncaughtExceptionCaptureCallback } from "process";
 import { Componente } from "./Componente.js";
-import type { Types } from "mongoose";
 
 
 export class Carpeta extends Componente {
@@ -8,9 +6,9 @@ export class Carpeta extends Componente {
     private ReadMe: string;
     private ruta: string;
 
-    constructor(_id: number, nombre: string, fechaCreacion: Date, fechaUltimaModificacion: Date, idUsuario: number, ReadMe: string) {
+    constructor(_id: string, nombre: string, fechaCreacion: Date, fechaUltimaModificacion: Date, idUsuario: string, ReadMe: string, componentes? : Componente[]) {
         super(_id, nombre, fechaCreacion, fechaUltimaModificacion, idUsuario, "carpeta");
-        this.componentes = [];
+        this.componentes = componentes || [];
         this.ReadMe = ReadMe;
         this.ruta = "";
     }
@@ -24,7 +22,7 @@ export class Carpeta extends Componente {
         return super.getFechaUltimaModificacion();
     }
 
-    getIdUsuario(): number {
+    getIdUsuario(): string {
         return super.getIdUsuario();
     }
     getComponentes(): Componente[] {
@@ -52,7 +50,7 @@ export class Carpeta extends Componente {
         this.componentes.push(componente);
     }
 
-    EliminarElemento(id: number): void {
+    EliminarElemento(id: string): void {
         this.componentes = this.componentes.filter(c => c.getId() == id);
     }
 

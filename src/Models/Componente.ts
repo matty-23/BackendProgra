@@ -1,13 +1,13 @@
-import type { Types } from "mongoose";
+
 export class Componente {
-    private id: number; 
+    private id: string; 
     private nombre: string;
     private fechaCreacion: Date;
     private fechaUltimaModificacion: Date
-    private idUsuario: number;
+    private idUsuario: string;
     private tipo: string;
 
-    constructor(id: number, nombre: string, fechaCreacion: Date, fechaUltimaModificacion: Date, idUsuario: number, tipo: string) {
+    constructor(id: string, nombre: string, fechaCreacion: Date, fechaUltimaModificacion: Date, idUsuario: string, tipo: string) {
         this.id = id,
         this.nombre = nombre,
         this.fechaCreacion = fechaCreacion,
@@ -16,28 +16,28 @@ export class Componente {
         this.tipo = tipo
     }
 
-    public getId(): number {
+    public getId(): string {
         return this.id;
     }
-    protected getNombre(): string {
+    public getNombre(): string {
         return this.nombre;
     }
-    protected getFechaCreacion(): Date {
+    public getFechaCreacion(): Date {
         return this.fechaCreacion;
     }
-    protected getFechaUltimaModificacion(): Date {
+    public getFechaUltimaModificacion(): Date {
         return this.fechaUltimaModificacion;
     }
-    protected getIdUsuario(): number {
+    public getIdUsuario(): string {
         return this.idUsuario;
     }
-    getTipo(): string {
+    public getTipo(): string {
         return this.tipo;
     }
-    protected setNombre(nombre: string): void {
+    public setNombre(nombre: string): void {
         this.nombre = nombre;
     }
-    protected setFechaUltimaModificacion(fechaUltimaModificacion: Date): void {
+    public setFechaUltimaModificacion(fechaUltimaModificacion: Date): void {
         this.fechaUltimaModificacion = fechaUltimaModificacion;
     }
 

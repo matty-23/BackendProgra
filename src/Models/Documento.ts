@@ -1,26 +1,18 @@
 import { Componente } from './Componente.js';
-import type { Types } from "mongoose";
 export class Documento extends Componente {
-    private contenido: string;
     private estado: string;
     private version: string;
 
-    constructor(id: number, nombre: string, fechaCreacion: Date, fechaUltimaModificacion: Date, idUsuario: number, contenido: string, estado: string, version: string, idPadre: Types.ObjectId | null) {
-        super(id, nombre, fechaCreacion, fechaUltimaModificacion, idUsuario, idPadre, "documento");
-        this.contenido = contenido;
+    constructor(id: string, nombre: string, fechaCreacion: Date, fechaUltimaModificacion: Date, idUsuario: string, estado: string, version: string) {
+        super(id, nombre, fechaCreacion, fechaUltimaModificacion, idUsuario, "documento");
         this.estado = estado;
         this.version = version;
     }
-    getContenido(): string {
-        return this.contenido;
-    }
-    getId(): number {
+
+    getId(): string {
         return super.getId();
     }
 
-    getIdPadre(): Types.ObjectId | null {
-        return super.getIdPadre();
-    }
     getEstado(): string {
         return this.estado;
     }
@@ -36,12 +28,10 @@ export class Documento extends Componente {
     getFechaUltimaModificacion(): Date {
         return super.getFechaUltimaModificacion();
     }
-    getIdUsuario(): number {
+    getIdUsuario(): string {
         return super.getIdUsuario();
     }
-    setContenido(contenido: string): void {
-        this.contenido = contenido;
-    }
+
     setEstado(estado: string): void {
         this.estado = estado;
     }

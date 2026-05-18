@@ -2,50 +2,67 @@ import { CarpetaModel } from '../Schemes/CarpetaScheme.js';
 import { Carpeta } from '../../Models/Carpeta.js';
 import mongoose, {  Types, type ObjectId } from 'mongoose';
 import type { ICarpetaScheme } from '../../Interfaces/ICarpetaScheme.js';
-import type { Componente } from '../../Models/Componente.js';
+import { Componente } from '../../Models/Componente.js';
+import { ComponenteRepository } from './ComponenteRepository.js';
 
 export class CarpetaRepository {
 
     
-    async crear(ReadMe: string,id: Types.ObjectId, componentes: Types.ObjectId[]): Promise<Types.ObjectId>{
+    async crear(ReadMe: string,id: string, componentes: Componente[]): Promise<Types.ObjectId>{
+        const componentesIds: Types.ObjectId[] = componentes.map(c => new Types.ObjectId(c.getId()));
+
         const nuevaCarpeta = new CarpetaModel({
             _id: id,
             ReadMe: ReadMe,
-            componentes: componentes
+            componentes: componentesIds
         });
 
         const carpetaCreada = await nuevaCarpeta.save();
         return carpetaCreada._id;
     }
-
-    
-    async obtenerPorId(id: number,componente: Componente): Promise<Carpeta | null> {
-        const carpeta = await CarpetaModel.findOne({ id }).lean<ICarpetaScheme>().exec();
+    async obtenerPorId(id: string,componente:Componente): Promise<Carpeta | null> {
+        const carpeta = await CarpetaModel.findOne({ _id: new Types.ObjectId(id) }).lean<Carpeta>().exec();
         if (!carpeta) return null;
-        const carpetaObtenida = new Carpeta(componente.getId(),componente['nombre'],componente['fechaCreacion'],componente['fechaUltimaModificacion'],componente['idUsuario'],componente['tipo'], carpeta.getReadMe(), carpeta.componentes);
-        return carpetaObtenida;
+        const carpetaActualizada=new Carpeta(componente.getId(),componente['nombre'], componente['fechaCreacion'],componente['fechaUltimaModificacion'],componente['idUsuario'],carpeta.getReadMe(),[]);
+        return carpetaActualizada;
     }
 
-    
-    async obtenerTodos(): Promise<Carpeta[]> {
-        const docs = await CarpetaModel.find().lean<ICarpetaScheme>().exec();
-        return docs.map(doc => this.convertirADominio(doc));
+    async obtenerComponentesCarpeta(id:string):Promise<Componente[] | null>{
+        const carpeta = await CarpetaModel.findOne({ _id: new Types.ObjectId(id) }).lean<ICarpetaScheme>().exec();
+        const repositorioComponente= new ComponenteRepository();
+        const componentes : Componente[] = [];
+
+        if (!carpeta) return null;
+        for (const idComponente of carpeta.componentes){
+            const componente= await repositorioComponente.obtenerPorId(idComponente.toString());
+            if (!componente) continue
+            componentes.push(componente);
+        }
+        return componentes;
+    }
+    async obtenerTodasLasCarpetasDeUnNivel(componentes:Componente[]): Promise<Carpeta[]> {
+        const carpetas: Carpeta[] | null = [];
+
+        for(const componente of componentes){
+            if (componente.getTipo() == "carpeta"){
+                const carpeta = await this.obtenerPorId(componente.getId(),componente);
+                if (carpeta) carpetas.push(carpeta);
+            }
+        }
+        return carpetas;
     }
 
+    async actualizar(id: string, datosActualizados: Carpeta): Promise<Carpeta | null> {
+        const carpetaActualizado = await CarpetaModel.findByIdAndUpdate({ _id:  new Types.ObjectId(id)  }, {datosActualizados}, { new: true }).lean<Carpeta>().exec();
 
-    async actualizar(id: number, datosActualizados: Partial<ICarpetaScheme>): Promise<Carpeta | null> {
-        datosActualizados.fechaUltimaModificacion = new Date();
-
-        const docActualizado = await CarpetaModel.findOneAndUpdate({ id }, datosActualizados, { new: true }).lean<ICarpetaScheme>().exec();
-
-        if (!docActualizado) return null;
-        return this.convertirADominio(docActualizado);
+        if (!carpetaActualizado) return null;
+        return carpetaActualizado;
     }
 
-
-
-    async eliminar(id: number): Promise<boolean> {
-        const resultado = await CarpetaModel.deleteOne({ id }).lean<ICarpetaScheme>().exec();
+    //Mismo caso, la logica para eliminar el respectivo componente tiene que estar en servicio
+    async eliminar(id: string): Promise<boolean> {
+        //Comprobar si la busqueda del ID esta bien
+        const resultado = await CarpetaModel.deleteOne({ _id:  new Types.ObjectId(id) }).exec();
         return resultado.deletedCount === 1;
     }
 }

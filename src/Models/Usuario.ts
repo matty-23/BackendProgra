@@ -1,6 +1,6 @@
-import { ObjectId } from "mongodb";
+
 export class Usuario {
-    private _id: number;
+    private _id: string;
     private nombre: string;
     private apellido: string;
     private email: string;
@@ -8,7 +8,7 @@ export class Usuario {
     private password: string;
     private fechaCreacion: Date;
 
-    constructor(id: number, nombre: string, apellido: string, email: string, username: string, password: string) {
+    constructor(id:string, nombre: string, apellido: string, email: string, username: string, password: string) {
         this._id = id;
         this.nombre = nombre;
         this.apellido = apellido;
@@ -18,7 +18,7 @@ export class Usuario {
         this.fechaCreacion = new Date();
     }
 
-    getId(): number {
+    getId(): string {
         return this._id;
     }
     getNombre(): string {
