@@ -40,5 +40,11 @@ export class Componente {
     public setFechaUltimaModificacion(fechaUltimaModificacion: Date): void {
         this.fechaUltimaModificacion = fechaUltimaModificacion;
     }
+    public setId(id: string): void {
+        this.id = id;
+    }
+    public setIdUsuario(idUsuario: string): void {
+        this.idUsuario = idUsuario;
+    }
 
 }

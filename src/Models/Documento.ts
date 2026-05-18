@@ -38,6 +38,7 @@ export class Documento extends Componente {
     setVersion(version: string): void {
         this.version = version;
     }
-
-    
+    setId(id: string): void {
+        super.setId(id);
+    }
 }
