@@ -12,9 +12,7 @@ export class CarpetaService extends ICarpetaService {
     private _componenteRepo = new ComponenteRepository();  
 
     async getCarpetasUsuario(idUsuario: string): Promise<Carpeta[]> {
-        
         const carpetas = await this._carpetaRepo.obtenerComponentesCarpeta(idUsuario);
-        
         return this._carpetaRepo.obtenerTodasLasCarpetasDeUnNivel(carpetas || []);
     }
 
@@ -40,11 +38,10 @@ export class CarpetaService extends ICarpetaService {
         const session = await mongoose.startSession();
         session.startTransaction();
         try { 
-            const idCarpeta = await this._carpetaRepo.crear(carpetaDto.ReadMe,carpetaDto.id,[]);
-            const nuevoComponente = new Componente(idCarpeta.toString(), carpetaDto.nombre, carpetaDto.fechaCreacion, carpetaDto.fechaUltimaModificacion, carpetaDto.idUsuario, "carpeta");
-            await this._componenteRepo.crearComponente(nuevoComponente.getNombre(), nuevoComponente.getIdUsuario(), nuevoComponente.getTipo(), session);
+            const idComponente = await this._componenteRepo.crearComponente(carpetaDto.nombre, carpetaDto.idUsuario, "Carpeta", session);
+            const idCarpeta = await this._carpetaRepo.crear(carpetaDto.ReadMe,idComponente.toString(),[]);
             await session.commitTransaction();
-            return new Carpeta(nuevoComponente.getId(), nuevoComponente.getNombre(), nuevoComponente.getFechaCreacion(), nuevoComponente.getFechaUltimaModificacion(), nuevoComponente.getIdUsuario(), carpetaDto.ReadMe, []);
+            return new Carpeta(idCarpeta.toString(), carpetaDto.nombre, new Date(), new Date(), carpetaDto.idUsuario, carpetaDto.ReadMe, []);
         
         } catch (error) {
             await session.abortTransaction();
@@ -57,6 +54,9 @@ export class CarpetaService extends ICarpetaService {
     }
 
     async updateCarpeta(carpetaDto: CarpetaDto): Promise<boolean> {
+        if (!carpetaDto.id) {
+            throw new Error("ID de carpeta es requerido para actualizar");
+        }
         const componenteExistente = await this._componenteRepo.obtenerPorId(carpetaDto.id);
         if (!componenteExistente) {
             throw new Error("Componente no encontrado");

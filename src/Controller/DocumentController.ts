@@ -3,7 +3,7 @@ import { Controller, Get, Param, NotFoundException, Post, Body, BadRequestExcept
 import { DocumentoDto } from '../DTO/DocumentoDTO.js';
 import { Documento } from '../Models/Documento.js';
 
-@Controller('Documentos')
+@Controller('api/Documentos')
 export class DocumentoController {
 
     constructor(@Inject('IDocumentoService') private readonly _documentoService: IDocumentoService) { }
