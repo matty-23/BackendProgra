@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+/* import mongoose from 'mongoose';
 import { ComponenteRepository } from './Database/Context/ComponenteRepository.js';
 
 import { Carpeta } from './Models/Carpeta.js';
@@ -27,3 +27,4 @@ export async function main() {
     }
 
 }
+ */

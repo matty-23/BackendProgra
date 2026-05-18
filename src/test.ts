@@ -1,4 +1,4 @@
-import 'dotenv/config';
+/* import 'dotenv/config';
 import { poolPromise, connectDB } from './Database/conexion.js'; // Ajusta la ruta a tu archivo
 
 async function test() {
@@ -26,4 +26,4 @@ async function test() {
   console.log('\n🏁 Prueba finalizada. Presiona Ctrl+C para salir si el proceso no termina.');
 }
 
-test();
+test(); */

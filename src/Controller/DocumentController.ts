@@ -1,12 +1,12 @@
 import { IDocumentoService } from '../Interfaces/IDocumentoService.js';
-import { Controller, Get, Param, NotFoundException, Post, Body, BadRequestException, HttpCode, Put, Delete } from '@nestjs/common';
+import { Controller, Get, Param, NotFoundException, Post, Body, BadRequestException, HttpCode, Put, Delete,Inject } from '@nestjs/common';
 import { DocumentoDto } from '../DTO/DocumentoDTO.js';
 import { Documento } from '../Models/Documento.js';
 
 @Controller('Documentos')
 export class DocumentoController {
 
-    constructor(private readonly _documentoService: IDocumentoService) { }
+    constructor(@Inject('IDocumentoService') private readonly _documentoService: IDocumentoService) { }
 
     @Get()
     async getAll(): Promise<DocumentoDto[]> {

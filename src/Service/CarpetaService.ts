@@ -75,10 +75,10 @@ export class CarpetaService extends ICarpetaService {
     }
 
     async getComponentesCarpeta(carpetaId: string): Promise<Componente[]> {
-       const carpetas = await this._carpetaRepo.obtenerComponentesCarpeta(carpetaId);
-       if (!carpetas) {
+       const componentesCarpetas = await this._carpetaRepo.obtenerComponentesCarpeta(carpetaId);
+       if (!componentesCarpetas) {
         throw new Error("Carpeta no encontrada");
        }
-        return carpetas;
+        return componentesCarpetas;
     }
 }
