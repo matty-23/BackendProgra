@@ -25,7 +25,7 @@ export class UsuarioService implements IUsuarioService {
         }
         return usuario;
     }
-    //Preguntar al profe esto
+    //Preguntar al profe si esta bien el flujo o como deberia hacerse
     async addUsuario(usuarioDto: UsuarioDto): Promise<Usuario> {
         const carpetasPrincipales = ["Mi Area", "Compartidos conmigo", "Recientes", "Destacados"];
         const usuarioId = await this.usuarioRepo.crearUsuario(usuarioDto.nombre,usuarioDto.apellido,usuarioDto.email,usuarioDto.username,usuarioDto.password);
