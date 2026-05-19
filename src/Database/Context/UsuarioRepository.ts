@@ -6,19 +6,18 @@ import type { ClientSession, ObjectId, Types } from "mongoose";
 
 export class UsuarioRepository {
 
-    async crearUsuario(usuario: Usuario, session?: ClientSession): Promise<Types.ObjectId> {
+    async crearUsuario(nombre: string, apellido: string, email: string, username: string, password: string, session?: ClientSession): Promise<Types.ObjectId> {
         const componenteRepository = new ComponenteRepository();
         try {
             const nuevoUsuario = new UsuarioModel({
-                nombre: usuario.getNombre(),
-                apellido: usuario.getApellido(),
-                email: usuario.getEmail(),
-                username: usuario.getUsername(),
-                password: usuario.getPassword(),
-                fechaCreacion: usuario.getFechaCreacion()
+                nombre: nombre,
+                apellido: apellido,
+                email: email,
+                username: username,
+                password: password,
+                fechaCreacion: new Date()
             });
             const UsuarioNuevo =  await nuevoUsuario.save({ ...(session ? { session } : {}) });
-            await componenteRepository.crearComponente(UsuarioNuevo._id.toString(),UsuarioNuevo._id.toString(),"carpeta" ,session);
             return UsuarioNuevo._id;
         } catch (error) {
             throw error;
@@ -41,9 +40,15 @@ export class UsuarioRepository {
         return usuario;
     }
     async actualizarUsuario(id: string, usuario: Partial<Usuario>): Promise<void> {
-        await UsuarioModel.findByIdAndUpdate(id, usuario);
+        const result = await UsuarioModel.findByIdAndUpdate(id, usuario);
+        if (!result) {
+            throw new Error("Usuario no encontrado");
+        }
     }
     async eliminarUsuario(id: string): Promise<void> {
-        await UsuarioModel.findByIdAndDelete(id);
+        const result = await UsuarioModel.findByIdAndDelete(id);
+        if (!result) {
+            throw new Error("Usuario no encontrado");
+        }
     }
 }
