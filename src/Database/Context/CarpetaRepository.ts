@@ -45,13 +45,16 @@ export class CarpetaRepository {
     }
 
     async actualizar(id: string, datosActualizados: Carpeta): Promise<Carpeta | null> {
-        const carpetaActualizado = await CarpetaModel.findByIdAndUpdate({ _id: new Types.ObjectId(id) }, { datosActualizados }, { new: true }).lean<Carpeta>().exec();
-
-        if (!carpetaActualizado) return null;
-        return carpetaActualizado;
-    }
-
-    //Mismo caso, la logica para eliminar el respectivo componente tiene que estar en servicio
+    const updateData = {
+        nombre: datosActualizados.getNombre(),
+        ReadMe: datosActualizados.getReadMe(),
+        componentes: datosActualizados.getComponentes().map(c => new Types.ObjectId(c.getId()))};
+    
+    const carpetaActualizada = await CarpetaModel.findByIdAndUpdate(id,{ $set: updateData },{ new: true }).lean<Carpeta>().exec();
+    if (!carpetaActualizada) return null;
+    return carpetaActualizada;
+}
+    //Añadir la logica para eliminar todas las subcarpetas y componente dentro de la carpeta a eliminar
     async eliminar(id: string): Promise<boolean> {
         //Comprobar si la busqueda del ID esta bien
         const resultado = await CarpetaModel.deleteOne({ _id: new Types.ObjectId(id) }).exec();

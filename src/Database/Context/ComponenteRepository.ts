@@ -68,16 +68,16 @@ export class ComponenteRepository {
         const componenteActualizado = await ComponenteModel.findOneAndUpdate({ _id: new Types.ObjectId(id) },{...datosActualizados},{ new: true }).exec();
         if (!componenteActualizado) return null;
         return new Componente(
-        componenteActualizado.id,
+        componenteActualizado._id.toString(),
         componenteActualizado.nombre,
         componenteActualizado.fechaCreacion,
         componenteActualizado.fechaUltimaModificacion,
         componenteActualizado.idUsuario.toString(),
-        componenteActualizado.tipo
-    );
+        componenteActualizado.tipo);
     }
+    
     async eliminar(id: string): Promise<boolean> {
-        const resultado = await ComponenteModel.deleteOne({ _id: new Types.ObjectId(id)   }).exec();
+        const resultado = await ComponenteModel.deleteOne({ _id: new Types.ObjectId(id)}).exec();
         return resultado.deletedCount === 1;
     }
 }

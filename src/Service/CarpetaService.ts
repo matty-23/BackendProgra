@@ -71,7 +71,20 @@ export class CarpetaService extends ICarpetaService {
     }
 
     async deleteCarpeta(id: string): Promise<boolean> {
-        return await this._carpetaRepo.eliminar(id);
+
+        try {
+            const componenteEliminado = await this._componenteRepo.eliminar(id);
+            if (!componenteEliminado) {
+                throw new Error("Error al eliminar el componente asociado a la carpeta");
+            }
+            const carpetaEliminada = await this._carpetaRepo.eliminar(id);
+            if (!carpetaEliminada) {
+                throw new Error("Error al eliminar la carpeta");
+            }
+            return true;
+        } catch (error) {
+            throw new Error("Error al eliminar la carpeta");
+        }
     }
 
     async getComponentesCarpeta(carpetaId: string): Promise<Componente[]> {
