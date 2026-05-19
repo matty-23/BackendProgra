@@ -15,17 +15,18 @@ export class UsuarioController {
         }
 
         const userDto: UsuarioDto = {
-            id: usuario.id,
-            nombre: usuario.nombre,
-            email: usuario.email,
-            apellido: usuario.apellido,
-            fechaCreacion: usuario.fechaCreacion,
-            username: usuario.username,
-            password: usuario.password
+            id: usuario.getId(),
+            nombre: usuario.getNombre(),
+            email: usuario.getEmail(),
+            apellido: usuario.getApellido(),
+            fechaCreacion: usuario.getFechaCreacion(),
+            username: usuario.getUsername(),
+            password: usuario.getPassword()
         };
 
         return userDto;
     }
+
     @Get(":username")
     async getUsuarioByUsername(@Param("username") username: string): Promise<UsuarioDto> {
         const usuario = await this._UsuarioService.getUsuarioByUsername(username);
@@ -33,15 +34,55 @@ export class UsuarioController {
             throw new NotFoundException("Usuario no encontrado");
         }
         const userDto: UsuarioDto = {
-            id: usuario.id,
-            nombre: usuario.nombre,
-            email: usuario.email,
-            apellido: usuario.apellido,
-            fechaCreacion: usuario.fechaCreacion,
-            username: usuario.username,
-            password: usuario.password
+            id: usuario.getId(),
+            nombre: usuario.getNombre(),
+            email: usuario.getEmail(),
+            apellido: usuario.getApellido(),
+            fechaCreacion: usuario.getFechaCreacion(),
+            username: usuario.getUsername(),
+            password: usuario.getPassword()
         };
         return userDto;
     }
 
+    @Post()
+    @HttpCode(201)
+    async addUsuario(@Body() usuarioDto: UsuarioDto): Promise<UsuarioDto> {
+        try {
+            const nuevoUsuario = await this._UsuarioService.addUsuario(usuarioDto); 
+            const nuevoUsuarioDto: UsuarioDto = {
+                id: nuevoUsuario.getId(),
+                nombre: nuevoUsuario.getNombre(),
+                email: nuevoUsuario.getEmail(),
+                apellido: nuevoUsuario.getApellido(),
+                fechaCreacion: nuevoUsuario.getFechaCreacion(),
+                username: nuevoUsuario.getUsername(),
+                password: nuevoUsuario.getPassword()
+            };
+            return nuevoUsuarioDto;
+        } catch (error) {
+            throw new BadRequestException("Error al crear el usuario");
+        }
+    }
+
+    @Put(":id")
+    async updateUsuario(@Param("id") id: string, @Body() usuarioDto: UsuarioDto): Promise<void> {
+        if (id !== usuarioDto.id) {
+            throw new BadRequestException("El ID del usuario no coincide con el ID proporcionado en la URL");
+        }
+        try {
+            await this._UsuarioService.updateUsuario(usuarioDto);
+        } catch (error) {
+            throw new NotFoundException("Usuario no encontrado");
+        }
+    }
+    
+    @Delete(":id")
+    async deleteUsuario(@Param("id") id: string): Promise<void> {
+        try {
+            await this._UsuarioService.deleteUsuario(id);
+        } catch (error) {
+            throw new NotFoundException("Usuario no encontrado");
+        }
+    }
 }
