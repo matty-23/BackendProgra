@@ -2,12 +2,14 @@ import { ComponenteModel } from '../Schemes/ComponenteScheme.js';
 import { Componente } from '../../Models/Componente.js';
 import type { IComponenteScheme } from '../../Interfaces/IComponenteScheme.js';
 import mongoose, { Types } from 'mongoose';
-import { ClientSession, ObjectId } from "mongodb";
+import { transactionContext } from '../TransactionContext.js';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 export class ComponenteRepository {
 
-    async crearComponente(nombre: string, idUsuario: string,tipo: string, session?: ClientSession): Promise<Types.ObjectId>{
-        
+    async crearComponente(nombre: string, idUsuario: string,tipo: string): Promise<Types.ObjectId>{
+        const session = transactionContext.getStore();
         try {
             const nuevoComponente = new ComponenteModel({
                 _id: new mongoose.Types.ObjectId(),
@@ -18,17 +20,16 @@ export class ComponenteRepository {
                 tipo: tipo
             });
 
-            const docGuardado = await nuevoComponente.save({ ...(session ? { session } : {}), validateBeforeSave: false }); // Pasamos la sesión
-            
+            const docGuardado = await nuevoComponente.save({ ...(session ? { session } : {}), validateBeforeSave: false }); 
             return docGuardado._id;
-
         } catch (error) {
             throw error;
         } 
 
     }
     async obtenerPorId(id: string): Promise<Componente | null> {
-        const componente = await ComponenteModel.findOne({ _id: new Types.ObjectId(id) }).lean<IComponenteScheme>();
+        const session = transactionContext.getStore();
+        const componente = await ComponenteModel.findOne({ _id: new Types.ObjectId(id) }).session(session || null).lean<IComponenteScheme>();
         if (!componente) return null;
 
         return new Componente(
@@ -41,7 +42,7 @@ export class ComponenteRepository {
         );
     }
     async obtenerTodos(): Promise<Componente[]> {
-    const componentes = await ComponenteModel.find().lean<IComponenteScheme[]>();
+        const componentes = await ComponenteModel.find().lean<IComponenteScheme[]>();
        return componentes.map(c => new Componente(
             c._id.toString(),
             c.nombre,
@@ -63,21 +64,22 @@ export class ComponenteRepository {
         ));
     }
     async actualizar(id: string, datosActualizados: Componente): Promise<Componente | null> {
+        const session = transactionContext.getStore();
         datosActualizados.setFechaUltimaModificacion(new Date());
 
-        const componenteActualizado = await ComponenteModel.findOneAndUpdate({ _id: new Types.ObjectId(id) },{...datosActualizados},{ new: true }).exec();
+        const componenteActualizado = await ComponenteModel.findOneAndUpdate({ _id: new Types.ObjectId(id) },{...datosActualizados},{ new: true }).session(session || null).exec();
         if (!componenteActualizado) return null;
         return new Componente(
-        componenteActualizado.id,
+        componenteActualizado._id.toString(),
         componenteActualizado.nombre,
         componenteActualizado.fechaCreacion,
         componenteActualizado.fechaUltimaModificacion,
         componenteActualizado.idUsuario.toString(),
-        componenteActualizado.tipo
-    );
+        componenteActualizado.tipo);
     }
+    
     async eliminar(id: string): Promise<boolean> {
-        const resultado = await ComponenteModel.deleteOne({ _id: new Types.ObjectId(id)   }).exec();
+        const resultado = await ComponenteModel.deleteOne({ _id: new Types.ObjectId(id)}).exec();
         return resultado.deletedCount === 1;
     }
 }

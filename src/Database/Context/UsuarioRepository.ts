@@ -1,37 +1,47 @@
-import {ComponenteRepository} from "./ComponenteRepository.js";
+import { Injectable } from "@nestjs/common";
 import { UsuarioModel } from "../Schemes/UsuarioScheme.js";
 import { Usuario } from "../../Models/Usuario.js";
-import type { ClientSession, ObjectId, Types } from "mongoose";
+import { transactionContext } from '../TransactionContext.js';
+import { Types } from "mongoose";
 
-
+@Injectable()
 export class UsuarioRepository {
 
-    async crearUsuario(usuario: Usuario, session?: ClientSession): Promise<Types.ObjectId> {
-        const componenteRepository = new ComponenteRepository();
+    async crearUsuario(nombre: string, apellido: string, email: string, username: string, password: string): Promise<Types.ObjectId> {
+        const session = transactionContext.getStore();
         try {
             const nuevoUsuario = new UsuarioModel({
-                nombre: usuario.getNombre(),
-                apellido: usuario.getApellido(),
-                email: usuario.getEmail(),
-                username: usuario.getUsername(),
-                password: usuario.getPassword(),
-                fechaCreacion: usuario.getFechaCreacion()
+                _id: new Types.ObjectId(),
+                nombre: nombre,
+                apellido: apellido,
+                email: email,
+                username: username,
+                password: password,
+                fechaCreacion: new Date()
             });
             const UsuarioNuevo =  await nuevoUsuario.save({ ...(session ? { session } : {}) });
-            await componenteRepository.crearComponente(UsuarioNuevo._id.toString(),UsuarioNuevo._id.toString(),"carpeta" ,session);
             return UsuarioNuevo._id;
         } catch (error) {
+            console.log(error);
             throw error;
         } 
     }
     
     async obtenerUsuarioPorId(id: string): Promise<Usuario> {
-        //El lead<Usuario> convirte el documento Mongo a un objeto
-        const usuario = await UsuarioModel.findById(id).lean<Usuario>();
+        const session = transactionContext.getStore();
+        const usuario = await UsuarioModel.findById(id).session(session || null).lean<Usuario>();
         if (!usuario) {
             throw new Error("Usuario no encontrado");
         }
-        return usuario;
+        const nuevoUsuario = new Usuario(
+            usuario['_id'].toString(),
+            usuario['nombre'],
+            usuario['apellido'],
+            usuario['email'],
+            usuario['username'],
+            usuario['password'],
+        );
+        return nuevoUsuario;
     }
     async obtenerUsuarioPorUsername(username: string): Promise<Usuario> {
         const usuario = await UsuarioModel.findOne({ username }).lean<Usuario>();
@@ -41,9 +51,15 @@ export class UsuarioRepository {
         return usuario;
     }
     async actualizarUsuario(id: string, usuario: Partial<Usuario>): Promise<void> {
-        await UsuarioModel.findByIdAndUpdate(id, usuario);
+        const result = await UsuarioModel.findByIdAndUpdate(id, usuario);
+        if (!result) {
+            throw new Error("Usuario no encontrado");
+        }
     }
     async eliminarUsuario(id: string): Promise<void> {
-        await UsuarioModel.findByIdAndDelete(id);
+        const result = await UsuarioModel.findByIdAndDelete(id);
+        if (!result) {
+            throw new Error("Usuario no encontrado");
+        }
     }
 }

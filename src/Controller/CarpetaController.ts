@@ -2,39 +2,24 @@ import type { ICarpetaService } from '../Interfaces/ICarpetaService.js';
 import type { IDocumentoService } from '../Interfaces/IDocumentoService.js';
 import { Controller, Get, Param, NotFoundException, Post, Body, BadRequestException, HttpCode, Put, Delete } from '@nestjs/common';
 import { CarpetaDto } from '../DTO/CarpetaDTO.js';
-import { DocumentoDto } from '../DTO/DocumentoDTO.js';
 import { Carpeta } from '../Models/Carpeta.js';
-import { Documento } from '../Models/Documento.js';
+import { ComponenteDto } from '../DTO/ComponenteDTO.js';
+import { Inject } from '@nestjs/common';
 
 @Controller('api/Carpetas')
 export class CarpetaController {
 
-    constructor(private readonly _CarpetaService: ICarpetaService, private readonly _DocumentoService: IDocumentoService) { }
-
-    @Get()
-    async getAll(): Promise<CarpetaDto[]> {
-        const carpetas = await this._CarpetaService.getCarpetas();
-
-        const carpetasDto = carpetas.map(c => ({
-            id: c.getId(),
-            nombre: c.getNombre(),
-            fechaCreacion: c.getFechaCreacion(),
-            fechaUltimaModificacion: c.getFechaUltimaModificacion(),
-            idUsuario: c.getIdUsuario(),
-            ReadMe: c.getReadMe()
-        } as CarpetaDto));
-
-        return carpetasDto;
-    }
+    constructor(@Inject('ICarpetaService') private readonly _CarpetaService: ICarpetaService, @Inject('IDocumentoService') private readonly _DocumentoService: IDocumentoService) { }
+    
+    //Preguntar al profe si es necesario este endpoint, ya que mucho sentido de ser no tiene
 
     @Get(':id')
     async getById(@Param('id') id: string): Promise<CarpetaDto> {
-        const idCarp = parseInt(id, 10);
-        const carpeta = await this._CarpetaService.getCarpetaById(idCarp);
-        const componentes = await this._CarpetaService.getComponentesCarpeta(idCarp)
+        const carpeta = await this._CarpetaService.getCarpetaById(id);
+        const componentes = await this._CarpetaService.getComponentesCarpeta(id);
 
         if (!carpeta) {
-            throw new NotFoundException(`Carpeta con ID ${idCarp} no encontrado.`);
+            throw new NotFoundException(`Carpeta con ID ${id} no encontrado.`);
         }
 
         const carpetaDto: CarpetaDto = {
@@ -49,6 +34,25 @@ export class CarpetaController {
         return carpetaDto;
     }
 
+    @Get(':id/hijos')
+    async getComponentes(@Param('id') id: string): Promise<ComponenteDto[]> {
+        const componentes = await this._CarpetaService.getComponentesCarpeta(id);
+        if (componentes === null) {// Si no se encuentran componentes, no deberia tirar ningun error, simplemente carga vacia
+            throw new NotFoundException(`Carpeta con ID ${id} no encontrado.`);
+        }
+
+        const componentesDto = componentes.map(c => ({
+            id: c.getId(),
+            nombre: c.getNombre(),
+            fechaCreacion: c.getFechaCreacion(),
+            fechaUltimaModificacion: c.getFechaUltimaModificacion(),
+            idUsuario: c.getIdUsuario(),
+            tipo: c.getTipo()
+        } as ComponenteDto));
+
+        return componentesDto;
+    }
+
     @Post()
     @HttpCode(201)
     async registrar(@Body() carp: CarpetaDto): Promise<CarpetaDto> {
@@ -57,7 +61,7 @@ export class CarpetaController {
         if (!carpeta) {
             throw new BadRequestException("Error al registrar el Carpeta.");
         }
-        const componentes = await this._CarpetaService.getComponentesCarpeta(carp.id)
+
         const carpetaDto: CarpetaDto = {
             id: carpeta.getId(),
             nombre: carpeta.getNombre(),
@@ -71,25 +75,20 @@ export class CarpetaController {
 
     @Put(':id')
     async actualizar(@Param('id') id: string, @Body() doc: CarpetaDto): Promise<void> {
-        const idDoc = parseInt(id, 10);
-        const actualizado = await this._CarpetaService.updateCarpeta({ ...doc, id: idDoc });
+
+        const actualizado = await this._CarpetaService.updateCarpeta(id, new Carpeta(id, doc.nombre, doc.fechaCreacion ?? new Date(), doc.fechaUltimaModificacion ?? new Date(), doc.idUsuario, doc.ReadMe, []));
         if (!actualizado) {
-            throw new NotFoundException(`Carpeta con ID ${idDoc} no encontrado para actualizar.`);
+            throw new NotFoundException(`Carpeta con ID ${id} no encontrado para actualizar.`);
         }
     }
 
     @Delete(':id')
     async eliminar(@Param('id') id: string): Promise<void> {
-        const idDoc = parseInt(id, 10);
-        const eliminado = await this._CarpetaService.deleteCarpeta(idDoc);
+        const eliminado = await this._CarpetaService.deleteCarpeta(id);
         if (!eliminado) {
-            throw new NotFoundException(`Carpeta con ID ${idDoc} no encontrado para eliminar.`);
+            throw new NotFoundException(`Carpeta con ID ${id} no encontrado para eliminar.`);
         }
     }
 
-    @Get(':id/componentes')
-    async getComponentes(@Param('id') id: string): Promise<(CarpetaDto | Documento)[]> {
-        const idDoc = parseInt(id, 10);
-        return await this._CarpetaService.getComponentesCarpeta(idDoc);
-    }
+
 }
