@@ -2,7 +2,7 @@ import type { ICarpetaService } from '../Interfaces/ICarpetaService.js';
 import type { IDocumentoService } from '../Interfaces/IDocumentoService.js';
 import { Controller, Get, Param, NotFoundException, Post, Body, BadRequestException, HttpCode, Put, Delete } from '@nestjs/common';
 import { CarpetaDto } from '../DTO/CarpetaDTO.js';
-import { DocumentoDto } from '../DTO/DocumentoDTO.js';
+import { Carpeta } from '../Models/Carpeta.js';
 import { ComponenteDto } from '../DTO/ComponenteDTO.js';
 import { Inject } from '@nestjs/common';
 
@@ -12,21 +12,6 @@ export class CarpetaController {
     constructor(@Inject('ICarpetaService') private readonly _CarpetaService: ICarpetaService, @Inject('IDocumentoService') private readonly _DocumentoService: IDocumentoService) { }
     
     //Preguntar al profe si es necesario este endpoint, ya que mucho sentido de ser no tiene
-    /* @Get()
-    async getAll(): Promise<CarpetaDto[]> {
-        const carpetas = await this._CarpetaService.getCarpetas();
-
-        const carpetasDto = carpetas.map(c => ({
-            id: c.getId(),
-            nombre: c.getNombre(),
-            fechaCreacion: c.getFechaCreacion(),
-            fechaUltimaModificacion: c.getFechaUltimaModificacion(),
-            idUsuario: c.getIdUsuario(),
-            ReadMe: c.getReadMe()
-        } as CarpetaDto));
-
-        return carpetasDto;
-    } */
 
     @Get(':id')
     async getById(@Param('id') id: string): Promise<CarpetaDto> {
@@ -90,7 +75,8 @@ export class CarpetaController {
 
     @Put(':id')
     async actualizar(@Param('id') id: string, @Body() doc: CarpetaDto): Promise<void> {
-        const actualizado = await this._CarpetaService.updateCarpeta({ ...doc, id });
+
+        const actualizado = await this._CarpetaService.updateCarpeta(id, new Carpeta(id, doc.nombre, doc.fechaCreacion ?? new Date(), doc.fechaUltimaModificacion ?? new Date(), doc.idUsuario, doc.ReadMe, []));
         if (!actualizado) {
             throw new NotFoundException(`Carpeta con ID ${id} no encontrado para actualizar.`);
         }

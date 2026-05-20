@@ -27,7 +27,7 @@ export class UsuarioController {
         return userDto;
     }
 
-    @Get(":username")
+    @Get("username/:username")
     async getUsuarioByUsername(@Param("username") username: string): Promise<UsuarioDto> {
         const usuario = await this._UsuarioService.getUsuarioByUsername(username);
         if (!usuario) {
@@ -49,7 +49,7 @@ export class UsuarioController {
     @HttpCode(201)
     async addUsuario(@Body() usuarioDto: UsuarioDto): Promise<UsuarioDto> {
         try {
-            const nuevoUsuario = await this._UsuarioService.addUsuario(usuarioDto); 
+            const nuevoUsuario = await this._UsuarioService.addUsuario(usuarioDto);
             const nuevoUsuarioDto: UsuarioDto = {
                 id: nuevoUsuario.getId(),
                 nombre: nuevoUsuario.getNombre(),
