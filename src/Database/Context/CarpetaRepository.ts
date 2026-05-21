@@ -59,17 +59,25 @@ export class CarpetaRepository {
     }
 
     async actualizar(id: string, datosActualizados: Carpeta): Promise<Carpeta | null> {
-    const session = transactionContext.getStore();
-    const updateData: any = { ReadMe: datosActualizados.getReadMe() };
+        const session = transactionContext.getStore();
+        const updateData: any = { ReadMe: datosActualizados.getReadMe() };
         
-    if (datosActualizados.getComponentes() && datosActualizados.getComponentes().length > 0) {
-        updateData.componentes = datosActualizados.getComponentes().map(c => new Types.ObjectId(c.getId()));
+        if (datosActualizados.getComponentes()) {
+            updateData.componentes = datosActualizados.getComponentes().map(c => new Types.ObjectId(c.getId()));
+        }
+        const carpetaActualizada = await CarpetaModel.findByIdAndUpdate(id,{ $set: updateData },{ new: true }).session(session || null).lean<Carpeta>().exec();
+        if (!carpetaActualizada) return null;
+        return carpetaActualizada;
     }
-    const carpetaActualizada = await CarpetaModel.findByIdAndUpdate(id,{ $set: updateData },{ new: true }).session(session || null).lean<Carpeta>().exec();
-    if (!carpetaActualizada) return null;
-    return carpetaActualizada;
-}
-    //Añadir la logica para eliminar todas las subcarpetas y componente dentro de la carpeta a eliminar
+
+    async borrarComponenteEnPadre(idHijo: string): Promise<void> {
+        const session = transactionContext.getStore();
+        await CarpetaModel.updateMany(
+            { componentes: new Types.ObjectId(idHijo) },
+            { $pull: { componentes: new Types.ObjectId(idHijo) } }
+        ).session(session || null).exec();
+    }
+
     async eliminar(id: string): Promise<boolean> {
         const session = transactionContext.getStore();
         //Comprobar si la busqueda del ID esta bien

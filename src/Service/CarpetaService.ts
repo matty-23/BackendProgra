@@ -98,14 +98,15 @@ export class CarpetaService extends ICarpetaService {
                 for (const hijo of componentesHijos) {
                     if (hijo.getTipo() === "carpeta" || hijo.getTipo() === "Carpeta") {
                         const hijoBorrado = await this.deleteCarpeta(hijo.getId());
-                        if (!hijoBorrado) throw new Error(`Error al borrar la subcarpeta ${hijo.getId()}`); // Verificar resultado
+                        if (!hijoBorrado) throw new Error(`Error al borrar la subcarpeta ${hijo.getId()}`); 
                     }
                     if (hijo.getTipo() === "documento" || hijo.getTipo() === "Documento") {
                         const docBorrado = await this._documentoService.deleteDocumento(hijo.getId());
-                        if (!docBorrado) throw new Error(`Error al borrar el documento ${hijo.getId()}`); // Verificar resultado
+                        if (!docBorrado) throw new Error(`Error al borrar el documento ${hijo.getId()}`); 
                     }
                 }
             }
+            await this._carpetaRepo.borrarComponenteEnPadre(id);
 
             const componenteEliminado = await this._componenteRepo.eliminar(id);
             if (!componenteEliminado) throw new Error(`No se pudo eliminar el componente ${id}`);

@@ -90,9 +90,13 @@ export class CarpetaController {
 
     @Delete(':id')
     async eliminar(@Param('id') id: string): Promise<void> {
-        const eliminado = await this._CarpetaService.deleteCarpeta(id);
-        if (!eliminado) {
-            throw new NotFoundException(`Carpeta con ID ${id} no encontrado para eliminar.`);
+        try {
+            const eliminado = await this._CarpetaService.deleteCarpeta(id);
+            if (!eliminado) {
+                throw new NotFoundException(`Carpeta con ID ${id} no encontrado para eliminar.`);
+            }
+        } catch (error: any) {
+            throw new BadRequestException(error.message || "Error al eliminar la carpeta");
         }
     }
 
