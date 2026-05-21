@@ -53,7 +53,7 @@ export class ComponenteRepository {
         ));
     }
     async obtenerComponentesPorTipo(tipo: string): Promise<Componente[]> {
-        const componentes = await ComponenteModel.find({ tipo }).lean<IComponenteScheme[]>();
+        const componentes = await ComponenteModel.find({ tipo: { $regex: new RegExp(`^${tipo}$`, 'i') } }).lean<IComponenteScheme[]>();
         return componentes.map(c => new Componente(
             c._id.toString(),
             c.nombre,
@@ -79,7 +79,8 @@ export class ComponenteRepository {
     }
     
     async eliminar(id: string): Promise<boolean> {
-        const resultado = await ComponenteModel.deleteOne({ _id: new Types.ObjectId(id)}).exec();
+        const session = transactionContext.getStore();
+        const resultado = await ComponenteModel.deleteOne({ _id: new Types.ObjectId(id)}).session(session || null).exec();
         return resultado.deletedCount === 1;
     }
 }

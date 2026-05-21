@@ -81,11 +81,19 @@ export class UsuarioService implements IUsuarioService {
     }
 
     async deleteUsuario(id: string): Promise<boolean> {
-        try {
+        return await this.txManager.execute(async () => {
+            const carpetas = await this.carpetaService.getCarpetasUsuario(id);
+            const carpetaPrincipal = carpetas.find(c => c.getNombre() === id);
+            
+            if (carpetaPrincipal) {
+                const carpetasBorradas = await this.carpetaService.deleteCarpeta(carpetaPrincipal.getId());
+                if (!carpetasBorradas) {
+                    throw new Error("Fallo al eliminar las carpetas asociadas al usuario.");
+                }
+            }
+
             await this.usuarioRepo.eliminarUsuario(id);
-        } catch (error) {
-            throw new Error("Error al eliminar el usuario");
-        }
-        return true;
+            return true;
+        });
     }
 }

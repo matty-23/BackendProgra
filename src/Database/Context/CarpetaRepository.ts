@@ -36,18 +36,26 @@ export class CarpetaRepository {
         const session = transactionContext.getStore();
         const carpeta = await CarpetaModel.findOne({ _id: new Types.ObjectId(id) }).session(session || null).lean<ICarpetaScheme>().exec();
         const repositorioComponente = new ComponenteRepository();
-        const componentes: Componente[] = [];
-
         if (!carpeta) return null;
-        await Promise.all(carpeta.componentes.map(id => repositorioComponente.obtenerPorId(id.toString())));
+
+        const componentes: Componente[] = [];
+        for (const compId of carpeta.componentes) {
+            const componente = await repositorioComponente.obtenerPorId(compId.toString());
+            if (componente !== null) {
+                componentes.push(componente);}}
         return componentes;
     }
 
     async obtenerTodasLasCarpetasDeUnNivel(componentes: Componente[]): Promise<Carpeta[]> {
-
-        const carpetasEncontradas = await Promise.all(componentes.filter(c => c.getTipo() === "carpeta").map(c => this.obtenerPorId(c.getId(), c)));
-        const carpetas = carpetasEncontradas.filter((c): c is Carpeta => c !== null);
-        return carpetas;
+        const carpetasEncontradas: Carpeta[] = [];
+        const componentesCarpeta = componentes.filter(c => c.getTipo().toLowerCase() === "carpeta");
+        
+        for (const c of componentesCarpeta) {
+            const carpeta = await this.obtenerPorId(c.getId(), c);
+            if (carpeta !== null) {
+                carpetasEncontradas.push(carpeta);}}
+        
+        return carpetasEncontradas;
     }
 
     async actualizar(id: string, datosActualizados: Carpeta): Promise<Carpeta | null> {
@@ -63,8 +71,9 @@ export class CarpetaRepository {
 }
     //Añadir la logica para eliminar todas las subcarpetas y componente dentro de la carpeta a eliminar
     async eliminar(id: string): Promise<boolean> {
+        const session = transactionContext.getStore();
         //Comprobar si la busqueda del ID esta bien
-        const resultado = await CarpetaModel.deleteOne({ _id: new Types.ObjectId(id) }).exec();
+        const resultado = await CarpetaModel.deleteOne({ _id: new Types.ObjectId(id) }).session(session || null).exec();
         return resultado.deletedCount === 1;
     }
 }

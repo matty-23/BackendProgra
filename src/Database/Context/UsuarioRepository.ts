@@ -44,11 +44,20 @@ export class UsuarioRepository {
         return nuevoUsuario;
     }
     async obtenerUsuarioPorUsername(username: string): Promise<Usuario> {
-        const usuario = await UsuarioModel.findOne({ username }).lean<Usuario>();
+        const session = transactionContext.getStore();
+        const usuario = await UsuarioModel.findOne({ username }).session(session || null).lean<Usuario>();
         if (!usuario) {
             throw new Error("Usuario no encontrado");
         }
-        return usuario;
+        const nuevoUsuario = new Usuario(
+            usuario['_id'].toString(),
+            usuario['nombre'],
+            usuario['apellido'],
+            usuario['email'],
+            usuario['username'],
+            usuario['password'],
+        );
+        return nuevoUsuario;
     }
     async actualizarUsuario(id: string, usuario: Partial<Usuario>): Promise<void> {
         const result = await UsuarioModel.findByIdAndUpdate(id, usuario);
@@ -57,7 +66,8 @@ export class UsuarioRepository {
         }
     }
     async eliminarUsuario(id: string): Promise<void> {
-        const result = await UsuarioModel.findByIdAndDelete(id);
+        const session = transactionContext.getStore();
+        const result = await UsuarioModel.findByIdAndDelete(id).session(session || null);
         if (!result) {
             throw new Error("Usuario no encontrado");
         }
