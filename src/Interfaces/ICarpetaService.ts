@@ -6,7 +6,7 @@ import type { Componente } from '../Models/Componente.js';
 export abstract class ICarpetaService {
     abstract getCarpetasUsuario(idUsuario: string): Promise<Carpeta[]>;
     abstract getCarpetaById(id: string): Promise<Carpeta| null>;
-    abstract addCarpeta(Carpeta: CarpetaDto): Promise<Carpeta>;
+    abstract addCarpeta(Carpeta: CarpetaDto,idPadre?:string): Promise<Carpeta>;
     abstract updateCarpeta(id: string, carpetaActualizada: Carpeta): Promise<boolean>;
     abstract deleteCarpeta(id: string): Promise<boolean>;
     abstract getComponentesCarpeta(id: string): Promise<Componente[] | null>;

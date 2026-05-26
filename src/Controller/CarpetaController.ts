@@ -10,8 +10,6 @@ import { Inject } from '@nestjs/common';
 export class CarpetaController {
 
     constructor(@Inject('ICarpetaService') private readonly _CarpetaService: ICarpetaService, @Inject('IDocumentoService') private readonly _DocumentoService: IDocumentoService) { }
-    
-    //Preguntar al profe si es necesario este endpoint, ya que mucho sentido de ser no tiene
 
     @Get(':id')
     async getById(@Param('id') id: string): Promise<CarpetaDto> {
@@ -37,7 +35,7 @@ export class CarpetaController {
     @Get(':id/hijos')
     async getComponentes(@Param('id') id: string): Promise<ComponenteDto[]> {
         const componentes = await this._CarpetaService.getComponentesCarpeta(id);
-        if (componentes === null) {// Si no se encuentran componentes, no deberia tirar ningun error, simplemente carga vacia
+        if (componentes === null) {
             throw new NotFoundException(`Carpeta con ID ${id} no encontrado.`);
         }
 
@@ -49,44 +47,56 @@ export class CarpetaController {
             idUsuario: c.getIdUsuario(),
             tipo: c.getTipo()
         } as ComponenteDto));
-
         return componentesDto;
     }
 
-    @Post()
+    @Post(':idPadre')
     @HttpCode(201)
-    async registrar(@Body() carp: CarpetaDto): Promise<CarpetaDto> {
+    async registrar(@Body() carp: CarpetaDto, @Param('idPadre') idPadre: string): Promise<CarpetaDto> {
 
-        const carpeta = await this._CarpetaService.addCarpeta(carp);
-        if (!carpeta) {
-            throw new BadRequestException("Error al registrar el Carpeta.");
+        try {
+            const carpeta = await this._CarpetaService.addCarpeta(carp, idPadre);
+            const carpetaDto: CarpetaDto = {
+                id: carpeta.getId(),
+                nombre: carpeta.getNombre(),
+                fechaCreacion: carpeta.getFechaCreacion(),
+                fechaUltimaModificacion: carpeta.getFechaUltimaModificacion(),
+                idUsuario: carpeta.getIdUsuario(),
+                ReadMe: carpeta.getReadMe()
+            };
+            return carpetaDto;
+
+        } catch (error: any) {
+            throw new BadRequestException(error.message || "Error al registrar la Carpeta.");
         }
-
-        const carpetaDto: CarpetaDto = {
-            id: carpeta.getId(),
-            nombre: carpeta.getNombre(),
-            fechaCreacion: carpeta.getFechaCreacion(),
-            fechaUltimaModificacion: carpeta.getFechaUltimaModificacion(),
-            idUsuario: carpeta.getIdUsuario(),
-            ReadMe: carpeta.getReadMe()
-        };
-        return carpetaDto;
     }
+
+
 
     @Put(':id')
     async actualizar(@Param('id') id: string, @Body() doc: CarpetaDto): Promise<void> {
-
-        const actualizado = await this._CarpetaService.updateCarpeta(id, new Carpeta(id, doc.nombre, doc.fechaCreacion ?? new Date(), doc.fechaUltimaModificacion ?? new Date(), doc.idUsuario, doc.ReadMe, []));
-        if (!actualizado) {
-            throw new NotFoundException(`Carpeta con ID ${id} no encontrado para actualizar.`);
+        try {
+            const actualizado = await this._CarpetaService.updateCarpeta(id, new Carpeta(id, doc.nombre, doc.fechaCreacion ?? new Date(), doc.fechaUltimaModificacion ?? new Date(), doc.idUsuario, doc.ReadMe, []));
+            
+            if (!actualizado) throw new NotFoundException(`Carpeta con ID ${id} no encontrada para actualizar.`);
+            
+        } catch (error: any) {
+            if (error instanceof NotFoundException) {
+                throw error;
+            }
+            throw new BadRequestException(error.message || "Error al actualizar la Carpeta.");
         }
     }
 
     @Delete(':id')
     async eliminar(@Param('id') id: string): Promise<void> {
-        const eliminado = await this._CarpetaService.deleteCarpeta(id);
-        if (!eliminado) {
-            throw new NotFoundException(`Carpeta con ID ${id} no encontrado para eliminar.`);
+        try {
+            const eliminado = await this._CarpetaService.deleteCarpeta(id);
+            if (!eliminado) {
+                throw new NotFoundException(`Carpeta con ID ${id} no encontrado para eliminar.`);
+            }
+        } catch (error: any) {
+            throw new BadRequestException(error.message || "Error al eliminar la carpeta");
         }
     }
 
