@@ -77,7 +77,7 @@ export class ComponenteRepository {
         componenteActualizado.idUsuario.toString(),
         componenteActualizado.tipo);
     }
-    
+
     async eliminar(id: string): Promise<boolean> {
         const session = transactionContext.getStore();
         const resultado = await ComponenteModel.deleteOne({ _id: new Types.ObjectId(id)}).session(session || null).exec();

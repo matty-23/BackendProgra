@@ -3,7 +3,7 @@ import { DocumentoDto } from '../DTO/DocumentoDTO.js';
 export abstract class IDocumentoService {
     abstract getDocumentos(): Promise<Documento[]>;
     abstract getDocumentoById(id: string): Promise<Documento>;
-    abstract addDocumento(Documento: DocumentoDto): Promise<Documento>;
+    abstract addDocumento(Documento: DocumentoDto, idCarpeta: string): Promise<Documento>;
     abstract updateDocumento(Documento: DocumentoDto): Promise<boolean>;
     abstract deleteDocumento(id: string): Promise<boolean>;
 }

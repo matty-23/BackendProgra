@@ -8,6 +8,7 @@ import { Componente } from "../Models/Componente.js";
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { IDocumentoService } from "../Interfaces/IDocumentoService.js";
 import { UsuarioRepository } from "../Database/Context/UsuarioRepository.js";
+import { transactionContext } from "../Database/TransactionContext.js";
 
 @Injectable()
 export class CarpetaService extends ICarpetaService {
