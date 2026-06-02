@@ -5,23 +5,35 @@
     "start:dev": "tsx watch src/main.ts"
   },
   "dependencies": {
+    "@grpc/grpc-js": "^1.14.4",
+    "@grpc/proto-loader": "^0.8.1",
     "@nestjs/common": "^11.1.24",
     "@nestjs/core": "^11.1.24",
+    "@nestjs/jwt": "^11.0.2",
+    "@nestjs/microservices": "^11.1.24",
+    "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.1.21",
     "async_hooks": "^1.0.0",
+    "bcrypt": "^6.0.0",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "mongoose": "^9.6.3",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
     "tsc": "^2.0.4"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/dotenv": "^6.1.1",
     "@types/node": "^25.9.1",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3"
+  },
+  "overrides": {
+    "qs": "^6.15.2"
   }
 }
