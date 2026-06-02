@@ -6,6 +6,7 @@ import { Componente } from '../../Models/Componente.js';
 import { ComponenteRepository } from './ComponenteRepository.js';
 import { transactionContext } from '../TransactionContext.js';
 import { Injectable } from '@nestjs/common';
+import { ok } from 'node:assert';
 
 @Injectable()
 export class CarpetaRepository {
@@ -83,5 +84,13 @@ export class CarpetaRepository {
         //Comprobar si la busqueda del ID esta bien
         const resultado = await CarpetaModel.deleteOne({ _id: new Types.ObjectId(id) }).session(session || null).exec();
         return resultado.deletedCount === 1;
+    }
+    async añadirComponente(idCarpeta: string, componente: Componente): Promise<string[] | null> {
+        const session = transactionContext.getStore();
+        const carpeta = await CarpetaModel.findById(idCarpeta).session(session || null).exec();
+        if (!carpeta) return null;
+        carpeta.componentes.push(new Types.ObjectId(componente.getId()));
+        const carpetaActualizada = await carpeta.save(session ? { session } : {});
+        return carpeta.componentes.map(c => c.toString());
     }
 }

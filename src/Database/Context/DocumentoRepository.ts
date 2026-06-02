@@ -25,6 +25,28 @@ export class DocumentoRepository {
         if (!doc) return null;
         return new Documento(componente.getId(), componente.getNombre(), componente.getFechaCreacion(), componente.getFechaUltimaModificacion(), componente.getIdUsuario(), doc.estado, doc.version)
     }
+    async obtenerPoridUsuario(idUsuario: string): Promise<Documento[]> {
+        const docs = await DocumentoModel.find({ idUsuario: idUsuario }).lean<IDocumentoScheme[]>().exec();
+        const documentos: Documento[] = [];
+
+        for (const doc of docs) {
+            const componente = await componenteR.obtenerPorId(doc._id.toString());
+            if (!componente) continue;
+            documentos.push(
+                new Documento(
+                    componente.getId(),
+                    componente.getNombre(),
+                    componente.getFechaCreacion(),
+                    componente.getFechaUltimaModificacion(),
+                    componente.getIdUsuario(),
+                    doc.estado,
+                    doc.version
+                )
+            );
+        }
+        return documentos;
+    }
+    
     async obtenerTodos(componentes: Componente[]): Promise<Documento[]> {
         const newDocs = [];
         for (const componente of componentes) {

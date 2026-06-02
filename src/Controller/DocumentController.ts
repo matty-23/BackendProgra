@@ -46,11 +46,11 @@ export class DocumentoController {
         return DocumentoDto;
     }
 
-    @Post()
+    @Post(':idCarpeta')
     @HttpCode(201)
-    async registrar(@Body() carp: DocumentoDto): Promise<DocumentoDto> {
+    async registrar(@Param('idCarpeta') idCarpeta: string, @Body() doc: DocumentoDto): Promise<DocumentoDto> {
 
-        const Documento = await this._documentoService.addDocumento(carp);
+        const Documento = await this._documentoService.addDocumento(doc, idCarpeta);
         if (!Documento) {
             throw new BadRequestException("Error al registrar el Documento.");
         }
