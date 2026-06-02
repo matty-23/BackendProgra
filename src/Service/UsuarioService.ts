@@ -30,7 +30,7 @@ export class UsuarioService implements IUsuarioService {
     async addUsuario(usuarioDto: UsuarioDto): Promise<Usuario> {
         const carpetasPrincipales = ["Mi Area", "Compartidos conmigo", "Recientes", "Destacados"];
         return await this.txManager.execute(async () => {
-            const usuarioId = await this.usuarioRepo.crearUsuario(usuarioDto.nombre, usuarioDto.apellido, usuarioDto.email, usuarioDto.username, usuarioDto.password);
+            if (usuarioDto.apellido === undefined || usuarioDto.password === undefined) {throw new Error('Apellido y password son obligatorios');}            const usuarioId = await this.usuarioRepo.crearUsuario(usuarioDto.nombre, usuarioDto.apellido, usuarioDto.email, usuarioDto.username, usuarioDto.password);
             const carpetaPrincipalDto :CarpetaDto = {
                 nombre: usuarioId.toString(),
                 fechaCreacion: new Date(),
@@ -71,8 +71,7 @@ export class UsuarioService implements IUsuarioService {
                 nombre: usuario.nombre,
                 apellido: usuario.apellido,
                 email: usuario.email,
-                username: usuario.username,
-                password: usuario.password
+                username: usuario.username
             } as Partial<Usuario>);
             return true;
         } catch (error) {
