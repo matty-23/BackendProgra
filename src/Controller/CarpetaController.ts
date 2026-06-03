@@ -1,12 +1,14 @@
 import type { ICarpetaService } from '../Interfaces/ICarpetaService.js';
 import type { IDocumentoService } from '../Interfaces/IDocumentoService.js';
-import { Controller, Get, Param, NotFoundException, Post, Body, BadRequestException, HttpCode, Put, Delete } from '@nestjs/common';
+import { Controller, Get, Param, NotFoundException, Post, Body, BadRequestException, HttpCode, Put, Delete, UseGuards } from '@nestjs/common';
 import { CarpetaDto } from '../DTO/CarpetaDTO.js';
 import { Carpeta } from '../Models/Carpeta.js';
 import { ComponenteDto } from '../DTO/ComponenteDTO.js';
+import { JwtAuthGuard } from '../Guards/JwtAuthGuard.js';
 import { Inject } from '@nestjs/common';
 
 @Controller('api/Carpetas')
+@UseGuards(JwtAuthGuard)
 export class CarpetaController {
 
     constructor(@Inject('ICarpetaService') private readonly _CarpetaService: ICarpetaService, @Inject('IDocumentoService') private readonly _DocumentoService: IDocumentoService) { }

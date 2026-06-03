@@ -1,121 +1,86 @@
-import { Injectable } from "@nestjs/common";
-import { GrpcMethod, RpcException } from '@nestjs/microservices';
+// src/Service/AuthService.ts
+import { Injectable, Inject } from '@nestjs/common';
+import { RpcException } from '@nestjs/microservices';
 import * as bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
 import type { IUsuarioService } from '../Interfaces/IUsuarioService.js';
-import type { SignOptions } from 'jsonwebtoken';
+import type { ITokenService } from '../Interfaces/ITokenService.js';
 import { UsuarioDto } from '../DTO/UsuarioDTO.js';
-import { LoginDto } from '../DTO/LoginDTO.js';
-import { LogoutDto } from '../DTO/LogoutDTO.js';
-import { AuthResponseDto } from '../DTO/AuthResponseDTO.js';
-import { LogoutResponseDto } from '../DTO/LogoutResponseDTO.js';
+import { LoginDto } from '../DTO/LoginDto.js';
+import { AuthResponseDto } from '../DTO/AuthResponseDto.js';
+import { TokenDto } from '../DTO/TokenDto.js';
+import type { IAuthService } from '../Interfaces/IAuthService.js';
+import { TokenRepository } from '../Database/Context/TokenRepository.js';
+
 
 @Injectable()
 export class AuthService implements IAuthService {
-    constructor(
-        private readonly usuarioService: IUsuarioService,
-        private readonly refreshTokenRepository: IRefreshTokenRepository,
-        private readonly jwtService: JwtService,
-    ) {}
-
+    constructor(@Inject('IUsuarioService') private readonly usuarioService: IUsuarioService,@Inject('ITokenService') private readonly tokenService: ITokenService,private readonly refreshTokenRepo: TokenRepository) {}
+    
     async register(data: UsuarioDto): Promise<AuthResponseDto> {
+        const usuarioExistente = await this.usuarioService.getUsuarioByUsername(data.username);
+        if (usuarioExistente) throw new RpcException('El usuario ya existe');
+        if (!data.password) throw new RpcException('La contraseña es requerida');
 
-    const usuarioExistente =
-        await this.usuarioService.getUsuarioByUsername(data.username);
+        const passwordHasheada = await bcrypt.hash(data.password, 10);
+        const nuevoUsuario = await this.usuarioService.addUsuario({ ...data, password: passwordHasheada });
 
-    if (usuarioExistente) {
-        throw new RpcException('El usuario ya existe');
+        return this.generarTokens(nuevoUsuario.getId(), nuevoUsuario.getUsername());
     }
-
-    const passwordHasheada = await bcrypt.hash(data.password, 10);
-
-    const nuevoUsuario =
-        await this.usuarioService.addUsuario({
-            ...data,
-            password: passwordHasheada
-        });
-
-    const accessToken =
-        this.jwtService.generateAccessToken(nuevoUsuario);
-
-    const refreshToken =
-        this.jwtService.generateRefreshToken(nuevoUsuario);
-
-    await this.refreshTokenRepository.save(refreshToken, nuevoUsuario.getId());
-
-    return {
-        accessToken,
-        refreshToken,
-        idUsuario: nuevoUsuario.getId(),
-        username: nuevoUsuario.getUsername()
-    };
-}
 
     async login(data: LoginDto): Promise<AuthResponseDto> {
+        const usuario = await this.usuarioService.getUsuarioByUsername(data.username);
+        if (!usuario) throw new RpcException('Credenciales inválidas');
 
-    const usuario =
-        await this.usuarioService.getUsuarioByUsername(data.username);
+        const passwordValida = await bcrypt.compare(data.password, usuario.getPassword());
+        if (!passwordValida) throw new RpcException('Credenciales inválidas');
 
-    if (!usuario) {
-        throw new RpcException('Credenciales inválidas');
+        return this.generarTokens(usuario.getId(), usuario.getUsername());
     }
 
-    const passwordValida =
-        await bcrypt.compare(data.password, usuario.getPassword());
+    async refresh(data: TokenDto): Promise<{ accessToken: string }> {
+        try {
+            const payload = this.tokenService.verifyRefreshToken(data.refreshToken);
+            
+            const tokenGuardado = await this.refreshTokenRepo.obtenerPorToken(data.refreshToken);
+            if (!tokenGuardado) throw new RpcException('Refresh token inválido o revocado');
 
-    if (!passwordValida) {
-        throw new RpcException('Credenciales inválidas');
+            const usuario = await this.usuarioService.getUsuarioById(payload.idUsuario);
+            if (!usuario) throw new RpcException('Usuario no encontrado');
+
+            const accessToken = this.tokenService.generateAccessToken(usuario.getId(), usuario.getUsername());
+            
+            return { accessToken };
+        } catch (error) {
+            throw new RpcException('Refresh token inválido o expirado');
+        }
     }
 
-    const accessToken =
-        this.jwtService.generateAccessToken(usuario);
-
-    const refreshToken =
-        this.jwtService.generateRefreshToken(usuario);
-
-    await this.refreshTokenRepository.save(refreshToken, usuario.getId());
-
-    return {
-        accessToken,
-        refreshToken,
-        idUsuario: usuario.getId(),
-        username: usuario.getUsername()
-    };
-}
-
-    async refresh(refreshToken: string): Promise<{ accessToken: string }> {
-
-    if (!refreshToken) {
-        throw new RpcException('Refresh token requerido');
+    async logout(token: string): Promise<{ success: boolean }> {
+        await this.refreshTokenRepo.eliminarPorToken(token);
+        return { success: true };
     }
 
-    const payload =
-        this.jwtService.verifyRefreshToken(refreshToken);
+    private async generarTokens(idUsuario: string, username: string): Promise<AuthResponseDto> {
+        const accessToken = this.tokenService.generateAccessToken(idUsuario, username);
+        const refreshToken = this.tokenService.generateRefreshToken(idUsuario);
 
-    const tokenExiste =
-        await this.refreshTokenRepository.findByToken(refreshToken);
+        const expiresInDays = parseInt(process.env.JWT_REFRESH_EXPIRES_IN!); 
 
-    if (!tokenExiste) {
-        throw new RpcException('Refresh token inválido');
+        await this.guardarTokens(refreshToken, idUsuario, expiresInDays);
+
+        return {
+            accessToken,
+            refreshToken,
+            idUsuario,
+            username
+        };
     }
 
-    const usuario =
-        await this.usuarioService.getUsuarioById(payload.idUsuario);
-
-    if (!usuario) {
-        throw new RpcException('Usuario no encontrado');
+    private async guardarTokens(refreshToken: string,idUsuario: string, expiresInDays: number) {
+        try{ 
+            await this.refreshTokenRepo.guardar(refreshToken, idUsuario, expiresInDays);
+        } catch(error){
+            throw error;
+        }
     }
-
-    const accessToken =
-        this.jwtService.generateAccessToken(usuario);
-
-    return { accessToken };
-}
-
-    async logout(refreshToken: string): Promise<LogoutResponseDto> {
-
-    await this.refreshTokenRepository.deleteByToken(refreshToken);
-
-    return { success: true };
-}
 }

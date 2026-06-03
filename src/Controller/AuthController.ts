@@ -1,95 +1,36 @@
-import { Controller, Inject } from '@nestjs/common';
-import { GrpcMethod, RpcException } from '@nestjs/microservices';
-import * as bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
-import type { IUsuarioService } from '../Interfaces/IUsuarioService.js';
-import type { SignOptions } from 'jsonwebtoken';
+// src/Controller/AuthController.ts
+import { Controller } from '@nestjs/common';
+import { GrpcMethod } from '@nestjs/microservices';
+import { AuthService } from '../Service/AuthService.js';
 import { UsuarioDto } from '../DTO/UsuarioDTO.js';
-import { LoginDto } from '../DTO/LoginDTO.js';
-import { LogoutDto } from '../DTO/LogoutDTO.js';
-import { AuthResponseDto } from '../DTO/AuthResponseDTO.js';
-import { LogoutResponseDto } from '../DTO/LogoutResponseDTO.js';
+import { LoginDto } from '../DTO/LoginDto.js';
+import { LogoutDto } from '../DTO/LogoutDto.js';
+import { TokenDto } from '../DTO/TokenDto.js';
+import { AuthResponseDto } from '../DTO/AuthResponseDto.js';
+import { LogoutResponseDto } from '../DTO/LogoutResponseDto.js';
 
 @Controller()
 export class AuthController {
 
-    constructor(@Inject('IUsuarioService') private readonly usuarioService: IUsuarioService) { }
+    constructor(private readonly authService: AuthService) { }
 
     @GrpcMethod('AuthService', 'Register')
     async Register(data: UsuarioDto): Promise<AuthResponseDto> {
-
-        const usuarioExistente = await this.usuarioService.getUsuarioByUsername(data.username);
-
-        if (usuarioExistente) { throw new RpcException('El usuario ya existe'); }
-        if (!data.password) { throw new RpcException('La contraseña es requerida'); }
-        const passwordHasheada = await bcrypt.hash(data.password, 10);
-        const nuevoUsuario = await this.usuarioService.addUsuario({ ...data, password: passwordHasheada });
-
-        const JWT_SECRET = process.env.JWT_SECRET;
-        const JWT_EXPIRES_IN: SignOptions['expiresIn'] = process.env.JWT_EXPIRES_IN as SignOptions['expiresIn'];
-
-        const token = jwt.sign(
-            {
-                idUsuario: nuevoUsuario.getId(),
-                username: nuevoUsuario.getUsername()
-            },
-            JWT_SECRET!,{expiresIn: JWT_EXPIRES_IN!});
-
-        return {
-            token,
-            idUsuario: nuevoUsuario.getId(),
-            username: nuevoUsuario.getUsername()
-        };
+        return await this.authService.register(data);
     }
 
     @GrpcMethod('AuthService', 'Login')
     async Login(data: LoginDto): Promise<AuthResponseDto> {
+        return await this.authService.login(data);
+    }
 
-        const usuario =
-            await this.usuarioService.getUsuarioByUsername(data.username);
-
-        if (!usuario) {
-            throw new RpcException('Credenciales inválidas');
-        }
-
-        const passwordValida = await bcrypt.compare(
-            data.password,
-            usuario.getPassword()
-        );
-
-        if (!passwordValida) {
-            throw new RpcException('Credenciales inválidas');
-        }
-
-        const JWT_SECRET = process.env.JWT_SECRET;
-        const JWT_EXPIRES_IN: SignOptions['expiresIn'] = process.env.JWT_EXPIRES_IN as SignOptions['expiresIn'];
-
-        const token = jwt.sign(
-            {
-                idUsuario: usuario.getId(),
-                username: usuario.getUsername()
-            },
-            JWT_SECRET!,{expiresIn: JWT_EXPIRES_IN!});
-
-        return {
-            token,
-            idUsuario: usuario.getId(),
-            username: usuario.getUsername()
-        };
+    @GrpcMethod('AuthService', 'Refresh')
+    async Refresh(data: TokenDto): Promise<{ accessToken: string }> {
+        return await this.authService.refresh(data);
     }
 
     @GrpcMethod('AuthService', 'Logout')
     async Logout(data: LogoutDto): Promise<LogoutResponseDto> {
-
-        if (!data.token) {
-            throw new RpcException('Token inválido');
-        }
-
-        // Si usaras blacklist de tokens:
-        // await this.authService.invalidateToken(data.token);
-
-        return {
-            success: true
-        };
+        return await this.authService.logout(data.token);
     }
 }

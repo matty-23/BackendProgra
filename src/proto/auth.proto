@@ -5,6 +5,7 @@ package auth;
 service AuthService {
   rpc Register (RegisterRequest) returns (AuthResponse) {}
   rpc Login (LoginRequest) returns (AuthResponse) {}
+  rpc Refresh (RefreshRequest) returns (RefreshResponse) {} 
   rpc Logout (LogoutRequest) returns (LogoutResponse) {}
 }
 
@@ -22,9 +23,18 @@ message LoginRequest {
 }
 
 message AuthResponse {
-  string token = 1;
-  string idUsuario = 2;
-  string username = 3;
+  string accessToken = 1;  
+  string refreshToken = 2; 
+  string idUsuario = 3;
+  string username = 4;
+}
+
+message RefreshRequest {   
+  string refreshToken = 1;
+}
+
+message RefreshResponse {  
+  string accessToken = 1;
 }
 
 message LogoutRequest {
