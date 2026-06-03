@@ -1,4 +1,3 @@
-// src/Service/AuthService.ts
 import { Injectable, Inject } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
 import * as bcrypt from 'bcrypt';
@@ -10,16 +9,24 @@ import { AuthResponseDto } from '../DTO/AuthResponseDto.js';
 import { TokenDto } from '../DTO/TokenDto.js';
 import type { IAuthService } from '../Interfaces/IAuthService.js';
 import { TokenRepository } from '../Database/Context/TokenRepository.js';
-
+import { forwardRef } from '@nestjs/common';
 
 @Injectable()
 export class AuthService implements IAuthService {
-    constructor(@Inject('IUsuarioService') private readonly usuarioService: IUsuarioService,@Inject('ITokenService') private readonly tokenService: ITokenService,private readonly refreshTokenRepo: TokenRepository) {}
+    constructor(
+        @Inject('IUsuarioService') private readonly usuarioService: IUsuarioService,
+        @Inject('ITokenService') private readonly tokenService: ITokenService,
+        @Inject(forwardRef(() => TokenRepository)) private readonly refreshTokenRepo: TokenRepository
+    ) {}
     
     async register(data: UsuarioDto): Promise<AuthResponseDto> {
-        const usuarioExistente = await this.usuarioService.getUsuarioByUsername(data.username);
-        if (usuarioExistente) throw new RpcException('El usuario ya existe');
         if (!data.password) throw new RpcException('La contraseña es requerida');
+
+        const usernameExistente = await this.usuarioService.getUsuarioByUsername(data.username);
+        if (usernameExistente) throw new RpcException('El nombre de usuario ya está en uso');
+
+        const emailExistente = await (this.usuarioService as any).getUsuarioByEmail(data.email);
+        if (emailExistente) throw new RpcException('El correo electrónico ya está registrado');
 
         const passwordHasheada = await bcrypt.hash(data.password, 10);
         const nuevoUsuario = await this.usuarioService.addUsuario({ ...data, password: passwordHasheada });
@@ -28,6 +35,8 @@ export class AuthService implements IAuthService {
     }
 
     async login(data: LoginDto): Promise<AuthResponseDto> {
+        if (!data.username || !data.password) throw new RpcException('Usuario y contraseña son requeridos');
+
         const usuario = await this.usuarioService.getUsuarioByUsername(data.username);
         if (!usuario) throw new RpcException('Credenciales inválidas');
 
@@ -76,10 +85,10 @@ export class AuthService implements IAuthService {
         };
     }
 
-    private async guardarTokens(refreshToken: string,idUsuario: string, expiresInDays: number) {
-        try{ 
+    private async guardarTokens(refreshToken: string, idUsuario: string, expiresInDays: number) {
+        try { 
             await this.refreshTokenRepo.guardar(refreshToken, idUsuario, expiresInDays);
-        } catch(error){
+        } catch(error) {
             throw error;
         }
     }
