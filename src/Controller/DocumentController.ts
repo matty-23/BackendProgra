@@ -1,9 +1,10 @@
 import { IDocumentoService } from '../Interfaces/IDocumentoService.js';
-import { Controller, Get, Param, NotFoundException, Post, Body, BadRequestException, HttpCode, Put, Delete,Inject } from '@nestjs/common';
+import { Controller, Get, Param, NotFoundException, Post, Body, BadRequestException, HttpCode, Put, Delete,Inject, UseGuards } from '@nestjs/common';
 import { DocumentoDto } from '../DTO/DocumentoDTO.js';
-import { Documento } from '../Models/Documento.js';
+import { JwtAuthGuard } from '../Guards/JwtAuthGuard.js';
 
 @Controller('api/Documentos')
+@UseGuards(JwtAuthGuard)
 export class DocumentoController {
 
     constructor(@Inject('IDocumentoService') private readonly _documentoService: IDocumentoService) { }

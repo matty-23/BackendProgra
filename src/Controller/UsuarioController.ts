@@ -1,8 +1,10 @@
-import { Controller, Get, Param, NotFoundException, Post, Body, BadRequestException, HttpCode, Put, Delete, Inject } from '@nestjs/common';
+import { Controller, Get, Param, NotFoundException, Post, Body, BadRequestException, HttpCode, Put, Delete, Inject, UseGuards } from '@nestjs/common';
 import { UsuarioDto } from '../DTO/UsuarioDTO.js';
 import type { IUsuarioService } from '../Interfaces/IUsuarioService.js';
+import { JwtAuthGuard } from '../Guards/JwtAuthGuard.js';
 
 @Controller('api/Usuarios')
+@UseGuards(JwtAuthGuard)
 export class UsuarioController {
     constructor(@Inject('IUsuarioService') private readonly _UsuarioService: IUsuarioService) { }
 
@@ -45,7 +47,7 @@ export class UsuarioController {
         return userDto;
     }
 
-    @Post()
+    /* @Post()
     @HttpCode(201)
     async addUsuario(@Body() usuarioDto: UsuarioDto): Promise<UsuarioDto> {
         try {
@@ -63,7 +65,7 @@ export class UsuarioController {
         } catch (error) {
             throw new BadRequestException("Error al crear el usuario");
         }
-    }
+    } */
 
     @Put(":id")
     async updateUsuario(@Param("id") id: string, @Body() usuarioDto: UsuarioDto): Promise<void> {

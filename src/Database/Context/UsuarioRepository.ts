@@ -12,14 +12,14 @@ export class UsuarioRepository {
         try {
             const nuevoUsuario = new UsuarioModel({
                 _id: new Types.ObjectId(),
-                nombre: nombre,
-                apellido: apellido,
-                email: email,
-                username: username,
-                password: password,
+                nombre,
+                apellido,
+                email,
+                username,
+                password,
                 fechaCreacion: new Date()
             });
-            const UsuarioNuevo =  await nuevoUsuario.save({ ...(session ? { session } : {}) });
+            const UsuarioNuevo = await nuevoUsuario.save({ ...(session ? { session } : {}) });
             return UsuarioNuevo._id;
         } catch (error) {
             console.log(error);
@@ -27,13 +27,13 @@ export class UsuarioRepository {
         } 
     }
     
-    async obtenerUsuarioPorId(id: string): Promise<Usuario> {
+    async obtenerUsuarioPorId(id: string): Promise<Usuario | null> {
         const session = transactionContext.getStore();
         const usuario = await UsuarioModel.findById(id).session(session || null).lean<Usuario>();
-        if (!usuario) {
-            throw new Error("Usuario no encontrado");
-        }
-        const nuevoUsuario = new Usuario(
+        
+        if (!usuario) return null; 
+        
+        return new Usuario(
             usuario['_id'].toString(),
             usuario['nombre'],
             usuario['apellido'],
@@ -41,15 +41,15 @@ export class UsuarioRepository {
             usuario['username'],
             usuario['password'],
         );
-        return nuevoUsuario;
     }
-    async obtenerUsuarioPorUsername(username: string): Promise<Usuario> {
+
+    async obtenerUsuarioPorUsername(username: string): Promise<Usuario | null> {
         const session = transactionContext.getStore();
         const usuario = await UsuarioModel.findOne({ username }).session(session || null).lean<Usuario>();
-        if (!usuario) {
-            throw new Error("Usuario no encontrado");
-        }
-        const nuevoUsuario = new Usuario(
+        
+        if (!usuario) return null; 
+        
+        return new Usuario(
             usuario['_id'].toString(),
             usuario['nombre'],
             usuario['apellido'],
@@ -57,19 +57,36 @@ export class UsuarioRepository {
             usuario['username'],
             usuario['password'],
         );
-        return nuevoUsuario;
     }
+
+    async obtenerUsuarioPorEmail(email: string): Promise<Usuario | null> {
+        const session = transactionContext.getStore();
+        const usuario = await UsuarioModel.findOne({ email }).session(session || null).lean<Usuario>();
+        
+        if (!usuario) return null;
+        
+        return new Usuario(
+            usuario['_id'].toString(),
+            usuario['nombre'],
+            usuario['apellido'],
+            usuario['email'],
+            usuario['username'],
+            usuario['password'],
+        );
+    }
+
     async actualizarUsuario(id: string, usuario: Partial<Usuario>): Promise<void> {
         const result = await UsuarioModel.findByIdAndUpdate(id, usuario);
         if (!result) {
-            throw new Error("Usuario no encontrado");
+            throw new Error("Usuario no encontrado para actualizar");
         }
     }
+
     async eliminarUsuario(id: string): Promise<void> {
         const session = transactionContext.getStore();
         const result = await UsuarioModel.findByIdAndDelete(id).session(session || null);
         if (!result) {
-            throw new Error("Usuario no encontrado");
+            throw new Error("Usuario no encontrado para eliminar");
         }
     }
 }

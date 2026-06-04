@@ -1,4 +1,4 @@
-import { Injectable, Inject,forwardRef } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { TransactionManager } from '../Database/TransactionManager.js';
 import type { IUsuarioService } from "../Interfaces/IUsuarioService.js";
 import { UsuarioRepository } from "../Database/Context/UsuarioRepository.js";
@@ -17,30 +17,33 @@ export class UsuarioService implements IUsuarioService {
     ) {}
 
     async getUsuarioById(id: string): Promise<Usuario | null> {
-        const usuario = await this.usuarioRepo.obtenerUsuarioPorId(id);
-        if (!usuario) return null;
-        return usuario;
+        return await this.usuarioRepo.obtenerUsuarioPorId(id);
     }
+
     async getUsuarioByUsername(username: string): Promise<Usuario | null> {
-        const usuario = await this.usuarioRepo.obtenerUsuarioPorUsername(username);
-        if (!usuario) return null;
-        return usuario;
+        return await this.usuarioRepo.obtenerUsuarioPorUsername(username);
+    }
+
+    async getUsuarioByEmail(email: string): Promise<Usuario | null> {
+        return await this.usuarioRepo.obtenerUsuarioPorEmail(email);
     }
 
     async addUsuario(usuarioDto: UsuarioDto): Promise<Usuario> {
         const carpetasPrincipales = ["Mi Area", "Compartidos conmigo", "Recientes", "Destacados"];
+        
         return await this.txManager.execute(async () => {
-            if (usuarioDto.apellido === undefined || usuarioDto.password === undefined) {throw new Error('Apellido y password son obligatorios');}            const usuarioId = await this.usuarioRepo.crearUsuario(usuarioDto.nombre, usuarioDto.apellido, usuarioDto.email, usuarioDto.username, usuarioDto.password);
-            const carpetaPrincipalDto :CarpetaDto = {
-                nombre: usuarioId.toString(),
-                fechaCreacion: new Date(),
-                fechaUltimaModificacion: new Date(),
-                idUsuario: usuarioId.toString(),
-                ReadMe: ""
-            };
-            const carpetaPrincipal= await this.carpetaService.addCarpeta(carpetaPrincipalDto);
+            if (!usuarioDto.nombre || !usuarioDto.apellido || !usuarioDto.email || !usuarioDto.username || !usuarioDto.password) {
+                throw new Error('Faltan campos obligatorios para crear el usuario');
+            }            
+
+            const usuarioId = await this.usuarioRepo.crearUsuario(usuarioDto.nombre, usuarioDto.apellido, usuarioDto.email, usuarioDto.username, usuarioDto.password);
+
+            const carpetaPrincipalDto: CarpetaDto = { nombre: usuarioId.toString(),fechaCreacion: new Date(),fechaUltimaModificacion: new Date(),idUsuario: usuarioId.toString(),ReadMe: ""};
+
+            const carpetaPrincipal = await this.carpetaService.addCarpeta(carpetaPrincipalDto);
+            
             for (const nombreCarpeta of carpetasPrincipales) {
-                const carpetaDto :CarpetaDto = {
+                const carpetaDto: CarpetaDto = {
                     nombre: nombreCarpeta,
                     fechaCreacion: new Date(),
                     fechaUltimaModificacion: new Date(),
@@ -48,25 +51,23 @@ export class UsuarioService implements IUsuarioService {
                     ReadMe: ""
                 };
                 const carpeta = await this.carpetaService.addCarpeta(carpetaDto);
-                if (!carpeta) {
-                    throw new Error(`Error al crear la carpeta ${nombreCarpeta}`);
-                }
+                if (!carpeta) throw new Error(`Error al crear la carpeta ${nombreCarpeta}`);
+                
                 carpetaPrincipal.AñadirElemento(carpeta);
             }
+
             const actualizarCarpetaPrincipal = await this.carpetaService.updateCarpeta(carpetaPrincipal.getId(), carpetaPrincipal);
-            if (!actualizarCarpetaPrincipal) {
-                throw new Error("Error al actualizar la carpeta principal del usuario");
-            }
+            if (!actualizarCarpetaPrincipal) throw new Error("Error al actualizar la carpeta principal del usuario");
+            
             const usuario = await this.getUsuarioById(usuarioId.toString());
-            if (!usuario) throw new Error("Error al obtener al usuario");
+            if (!usuario) throw new Error("Error crítico al recuperar el usuario recién creado");
+            
             return usuario;
         });
-        
-        
     }
 
     async updateUsuario(usuario: UsuarioDto): Promise<boolean> {
-       try {
+        try {
             await this.usuarioRepo.actualizarUsuario(usuario.id, {
                 nombre: usuario.nombre,
                 apellido: usuario.apellido,
