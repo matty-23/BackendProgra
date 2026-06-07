@@ -93,4 +93,7 @@ export class CarpetaRepository {
         const carpetaActualizada = await carpeta.save(session ? { session } : {});
         return carpeta.componentes.map(c => c.toString());
     }
+
+
+
 }

@@ -57,6 +57,8 @@ export class Carpeta extends Componente {
         this.componentes = this.componentes.filter(c => c.getId() == id);
     }
 
-
+setComponentes(componentes: Componente[]): void {
+        this.componentes = componentes;
+    }
 
 }

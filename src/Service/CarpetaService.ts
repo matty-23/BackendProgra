@@ -124,4 +124,34 @@ export class CarpetaService extends ICarpetaService {
         if (!componentesCarpetas) return null;
         return componentesCarpetas;
     }
+    async traerLasCarpetasPrincipales(IdUSuario: string): Promise<Carpeta[][]> {
+    const session = transactionContext.getStore();
+    const componenteUsuario = await this._componenteRepo.traerComponenteUsuario(IdUSuario);
+    if (!componenteUsuario) return [];
+    const carpetasPrincipales = await this._carpetaRepo.obtenerComponentesCarpeta( componenteUsuario.getId() || "");
+    if (!carpetasPrincipales) return [];
+    
+    const carp: Carpeta[][] = [];
+    
+    const promesasDeCarpetas = carpetasPrincipales.map(c => 
+        this._carpetaRepo.obtenerPorId(c.getId(), c)
+    );
+    const resultados = await Promise.all(promesasDeCarpetas);
+   /* for (const carpeta of resultados) {
+        if (carpeta) {
+            carp.push([carpeta]);
+        }
+    }*/
+  const miArea = resultados.find(c => c?.getNombre() === 'Mi Area') as Carpeta;
+  const carpeta = await this._carpetaRepo.obtenerPorId(miArea.getId(), miArea);
+  if (!carpeta) {
+            throw new Error("Carpeta 'Mi Area' no encontrada para el usuario.");
+        }
+  const componentesCarpetas = await this._carpetaRepo.obtenerComponentesCarpeta(miArea.getId());
+  miArea.setReadMe(carpeta.getReadMe() || ""); // Asignar el ReadMe de "Mi Area" a la carpeta principal
+  miArea.setComponentes(componentesCarpetas || []); // Asignar los componentes de "Mi Area" a la carpeta principal
+    carp.push([miArea]);
+    return carp;  
+}
+    
 }

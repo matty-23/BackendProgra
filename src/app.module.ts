@@ -13,7 +13,7 @@ import { CarpetaRepository } from './Database/Context/CarpetaRepository.js';
 import { AuthController } from './Controller/AuthController.js';
 import { AuthService } from './Service/AuthService.js';
 import { TokenService } from './Service/TokenService.js';
-import { TokenRepository } from './Database/Context/TokenRepository.js';
+import { TokenRepository } from './Database/Context/TokenRepository.js';    
 
 @Module({
   imports: [],
@@ -25,6 +25,7 @@ import { TokenRepository } from './Database/Context/TokenRepository.js';
     ComponenteRepository, 
     DocumentoRepository,
     TokenRepository, 
+    
     { provide: 'ICarpetaService', useClass: CarpetaService },
     { provide: 'IDocumentoService', useClass: DocumentoService },
     { provide: 'IUsuarioService', useClass: UsuarioService },
