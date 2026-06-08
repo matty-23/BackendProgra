@@ -1,21 +1,16 @@
 import { Controller, UseGuards, Inject } from '@nestjs/common';
 import { GrpcMethod, RpcException } from '@nestjs/microservices';
 import { status } from '@grpc/grpc-js';
-
 import type { ICarpetaService } from '../Interfaces/ICarpetaService.js';
 import type { IDocumentoService } from '../Interfaces/IDocumentoService.js';
 import { CarpetaDto  } from '../DTO/CarpetaDTO.js';
 import { Carpeta } from '../Models/Carpeta.js';
-import { ComponenteDto, ComponenteDtoGRPC } from '../DTO/ComponenteDTO.js';
+import { ComponenteDto} from '../DTO/ComponenteDTO.js';
 
-// En gRPC el controlador no necesita prefijo de ruta
 @Controller()
 export class CarpetaController {
 
-    constructor(
-        @Inject('ICarpetaService') private readonly _CarpetaService: ICarpetaService,
-        @Inject('IDocumentoService') private readonly _DocumentoService: IDocumentoService
-    ) { }
+    constructor(@Inject('ICarpetaService') private readonly _CarpetaService: ICarpetaService,@Inject('IDocumentoService') private readonly _DocumentoService: IDocumentoService) { }
 
     @GrpcMethod('CarpetaService', 'GetById')
     async getById(data: { id: string }): Promise<CarpetaDto> {
@@ -58,8 +53,6 @@ export class CarpetaController {
             tipo: c.getTipo()
         } as ComponenteDto));
 
-        // gRPC requiere devolver un objeto, no un arreglo directo. 
-        // Tu .proto debería tener `repeated ComponenteDto componentes = 1;`
         return { componentes: componentesDto }; 
     }
 
@@ -127,7 +120,7 @@ export class CarpetaController {
         }
     }
 
-@GrpcMethod('CarpetaService', 'CarpetasPrincipales')
+    @GrpcMethod('CarpetaService', 'CarpetasPrincipales')
     async getMiArea(data: { id: string }) {
 
         const carpetasPrincipalesMatriz = await this._CarpetaService.traerLasCarpetasPrincipales(data.id);
