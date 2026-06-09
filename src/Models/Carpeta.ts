@@ -51,6 +51,7 @@ export class Carpeta extends Componente {
 
     AñadirElemento(componente: Componente): void {
         this.componentes.push(componente);
+        console.log(`Elemento ${componente.getNombre()} añadido a la carpeta ${this.getNombre()}`);
     }
 
     EliminarElemento(id: string): void {

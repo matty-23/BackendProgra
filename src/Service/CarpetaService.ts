@@ -54,17 +54,19 @@ export class CarpetaService extends ICarpetaService {
             const idCarpeta = await this._carpetaRepo.crear(carpetaDto.ReadMe, idComponente.toString(), []);
             const nuevaCarpeta = new Carpeta(idCarpeta.toString(), carpetaDto.nombre, new Date(), new Date(), carpetaDto.idUsuario, carpetaDto.ReadMe, []);
             if (idPadre) {
+
                 const padre = await this.getCarpetaById(idPadre);
                 if (!padre) {
-                    throw new Error("La carpeta padre especificada en la ruta no existe.");
+                    throw new Error("Carpeta padre no encontrada.");
                 }
+                console.log('Padre antes:', padre?.getComponentes().length, 'hijos');
 
                 padre.AñadirElemento(nuevaCarpeta);
+                console.log('Padre después:', padre.getComponentes().length, 'hijos');
+                console.log('IDs a guardar:', padre.getComponentes().map(c => c.getId()));
 
                 const actualizado = await this.updateCarpeta(padre.getId(), padre);
-                if (!actualizado) {
-                    throw new Error("Error al actualizar la carpeta padre.");
-                }
+                console.log('Resultado updateCarpeta:', actualizado);
             }
             return nuevaCarpeta;
         });
@@ -99,11 +101,11 @@ export class CarpetaService extends ICarpetaService {
                 for (const hijo of componentesHijos) {
                     if (hijo.getTipo() === "carpeta" || hijo.getTipo() === "Carpeta") {
                         const hijoBorrado = await this.deleteCarpeta(hijo.getId());
-                        if (!hijoBorrado) throw new Error(`Error al borrar la subcarpeta ${hijo.getId()}`); 
+                        if (!hijoBorrado) throw new Error(`Error al borrar la subcarpeta ${hijo.getId()}`);
                     }
                     if (hijo.getTipo() === "documento" || hijo.getTipo() === "Documento") {
                         const docBorrado = await this._documentoService.deleteDocumento(hijo.getId());
-                        if (!docBorrado) throw new Error(`Error al borrar el documento ${hijo.getId()}`); 
+                        if (!docBorrado) throw new Error(`Error al borrar el documento ${hijo.getId()}`);
                     }
                 }
             }
@@ -125,33 +127,33 @@ export class CarpetaService extends ICarpetaService {
         return componentesCarpetas;
     }
     async traerLasCarpetasPrincipales(IdUSuario: string): Promise<Carpeta[][]> {
-    const session = transactionContext.getStore();
-    const componenteUsuario = await this._componenteRepo.traerComponenteUsuario(IdUSuario);
-    if (!componenteUsuario) return [];
-    const carpetasPrincipales = await this._carpetaRepo.obtenerComponentesCarpeta( componenteUsuario.getId() || "");
-    if (!carpetasPrincipales) return [];
-    
-    const carp: Carpeta[][] = [];
-    
-    const promesasDeCarpetas = carpetasPrincipales.map(c => 
-        this._carpetaRepo.obtenerPorId(c.getId(), c)
-    );
-    const resultados = await Promise.all(promesasDeCarpetas);
-   /* for (const carpeta of resultados) {
-        if (carpeta) {
-            carp.push([carpeta]);
-        }
-    }*/
-  const miArea = resultados.find(c => c?.getNombre() === 'Mi Area') as Carpeta;
-  const carpeta = await this._carpetaRepo.obtenerPorId(miArea.getId(), miArea);
-  if (!carpeta) {
+        const session = transactionContext.getStore();
+        const componenteUsuario = await this._componenteRepo.traerComponenteUsuario(IdUSuario);
+        if (!componenteUsuario) return [];
+        const carpetasPrincipales = await this._carpetaRepo.obtenerComponentesCarpeta(componenteUsuario.getId() || "");
+        if (!carpetasPrincipales) return [];
+
+        const carp: Carpeta[][] = [];
+
+        const promesasDeCarpetas = carpetasPrincipales.map(c =>
+            this._carpetaRepo.obtenerPorId(c.getId(), c)
+        );
+        const resultados = await Promise.all(promesasDeCarpetas);
+        /* for (const carpeta of resultados) {
+             if (carpeta) {
+                 carp.push([carpeta]);
+             }
+         }*/
+        const miArea = resultados.find(c => c?.getNombre() === 'Mi Area') as Carpeta;
+        const carpeta = await this._carpetaRepo.obtenerPorId(miArea.getId(), miArea);
+        if (!carpeta) {
             throw new Error("Carpeta 'Mi Area' no encontrada para el usuario.");
         }
-  const componentesCarpetas = await this._carpetaRepo.obtenerComponentesCarpeta(miArea.getId());
-  miArea.setReadMe(carpeta.getReadMe() || ""); // Asignar el ReadMe de "Mi Area" a la carpeta principal
-  miArea.setComponentes(componentesCarpetas || []); // Asignar los componentes de "Mi Area" a la carpeta principal
-    carp.push([miArea]);
-    return carp;  
-}
-    
+        const componentesCarpetas = await this._carpetaRepo.obtenerComponentesCarpeta(miArea.getId());
+        miArea.setReadMe(carpeta.getReadMe() || ""); // Asignar el ReadMe de "Mi Area" a la carpeta principal
+        miArea.setComponentes(componentesCarpetas || []); // Asignar los componentes de "Mi Area" a la carpeta principal
+        carp.push([miArea]);
+        return carp;
+    }
+
 }

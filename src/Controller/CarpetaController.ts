@@ -77,7 +77,7 @@ export class CarpetaController {
     }
 
     @GrpcMethod('CarpetaService', 'Actualizar')
-    async actualizar(data: { id: string, doc: CarpetaDto }): Promise<void> {
+    async actualizar(data: { id: string, doc: CarpetaDto }): Promise<{ success: boolean }> {
         try {
             const actualizado = await this._CarpetaService.updateCarpeta(
                 data.id, 
@@ -90,6 +90,7 @@ export class CarpetaController {
                     message: `Carpeta con ID ${data.id} no encontrada para actualizar.`
                 });
             }
+            return { success: true }; 
         } catch (error: any) {
             if (error instanceof RpcException) throw error;
             
@@ -101,15 +102,17 @@ export class CarpetaController {
     }
 
     @GrpcMethod('CarpetaService', 'Eliminar')
-    async eliminar(data: { id: string }): Promise<void> {
+    async eliminar(data: { id: string }): Promise<{ success: boolean }> {
         try {
             const eliminado = await this._CarpetaService.deleteCarpeta(data.id);
             if (!eliminado) {
                 throw new RpcException({
                     code: status.NOT_FOUND,
                     message: `Carpeta con ID ${data.id} no encontrado para eliminar.`
+                
                 });
             }
+            return { success: true }
         } catch (error: any) {
             if (error instanceof RpcException) throw error;
 
