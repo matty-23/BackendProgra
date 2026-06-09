@@ -20,11 +20,11 @@ async function bootstrap() {
     app.connectMicroservice<MicroserviceOptions>({
       transport: Transport.GRPC,
       options: {
-        package: ['auth', 'carpetas'], 
-        // Declaramos las rutas a ambos archivos .proto
+        package: ['auth', 'carpetas', 'documentos'], 
         protoPath: [
           join(process.cwd(), 'src/proto/auth.proto'),
-          join(process.cwd(), 'src/proto/carpeta.proto')
+          join(process.cwd(), 'src/proto/carpeta.proto'),
+          join(process.cwd(), 'src/proto/documento.proto')
         ],
         url: '0.0.0.0:50053', 
       },

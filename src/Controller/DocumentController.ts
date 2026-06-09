@@ -1,16 +1,21 @@
+import { Controller, Inject, UseGuards } from '@nestjs/common';
+import { GrpcMethod, RpcException } from '@nestjs/microservices';
 import { IDocumentoService } from '../Interfaces/IDocumentoService.js';
-import { Controller, Get, Param, NotFoundException, Post, Body, BadRequestException, HttpCode, Put, Delete,Inject, UseGuards } from '@nestjs/common';
 import { DocumentoDto } from '../DTO/DocumentoDTO.js';
 import { JwtAuthGuard } from '../Guards/JwtAuthGuard.js';
 
-@Controller('api/Documentos')
-@UseGuards(JwtAuthGuard)
+// Interfaz para representar la respuesta vacía de gRPC (como EmptyResponse)
+interface EmptyResponse {
+    success: boolean;
+}
+
+@Controller()
 export class DocumentoController {
 
     constructor(@Inject('IDocumentoService') private readonly _documentoService: IDocumentoService) { }
 
-    @Get()
-    async getAll(): Promise<DocumentoDto[]> {
+    @GrpcMethod('DocumentoService', 'GetAll')
+    async getAll(data: any): Promise<{ documentos: DocumentoDto[] }> {
         const Documentos = await this._documentoService.getDocumentos();
 
         const DocumentosDto = Documentos.map(c => ({
@@ -23,18 +28,20 @@ export class DocumentoController {
             version: c.getVersion()
         } as DocumentoDto));
 
-        return DocumentosDto;
+        // gRPC exige devolver un objeto (message) que contenga la lista
+        return { documentos: DocumentosDto };
     }
 
-    @Get(':id')
-    async getById(@Param('id') id: string): Promise<DocumentoDto> {
-        const Documento = await this._documentoService.getDocumentoById(id);
+    @GrpcMethod('DocumentoService', 'GetById')
+    async getById(data: { id: string }): Promise<DocumentoDto> {
+        const Documento = await this._documentoService.getDocumentoById(data.id);
 
         if (!Documento) {
-            throw new NotFoundException(`Documento con ID ${id} no encontrado.`);
+            // Se usa RpcException con el código 5 que equivale a NOT_FOUND
+            throw new RpcException({ code: 5, message: `Documento con ID ${data.id} no encontrado.` });
         }
 
-        const DocumentoDto: DocumentoDto = {
+        return {
             id: Documento.getId(),
             nombre: Documento.getNombre(),
             fechaCreacion: Documento.getFechaCreacion(),
@@ -43,20 +50,18 @@ export class DocumentoController {
             estado: Documento.getEstado(),
             version: Documento.getVersion()
         };
-
-        return DocumentoDto;
     }
 
-    @Post(':idCarpeta')
-    @HttpCode(201)
-    async registrar(@Param('idCarpeta') idCarpeta: string, @Body() doc: DocumentoDto): Promise<DocumentoDto> {
-
-        const Documento = await this._documentoService.addDocumento(doc, idCarpeta);
+    @GrpcMethod('DocumentoService', 'Registrar')
+    async registrar(data: { idCarpeta: string, doc: DocumentoDto }): Promise<DocumentoDto> {
+        const Documento = await this._documentoService.addDocumento(data.doc, data.idCarpeta);
+        
         if (!Documento) {
-            throw new BadRequestException("Error al registrar el Documento.");
+            // Código 3 equivale a INVALID_ARGUMENT (BadRequest)
+            throw new RpcException({ code: 3, message: "Error al registrar el Documento." });
         }
 
-        const DocumentoDto: DocumentoDto = {
+        return {
             id: Documento.getId(),
             nombre: Documento.getNombre(),
             fechaCreacion: Documento.getFechaCreacion(),
@@ -65,23 +70,27 @@ export class DocumentoController {
             estado: Documento.getEstado(),
             version: Documento.getVersion()
         };
-        return DocumentoDto;
     }
 
-    @Put(':id')
-    async actualizar(@Param('id') id: string, @Body() doc: DocumentoDto): Promise<void> {
-        const actualizado = await this._documentoService.updateDocumento({ ...doc, id: id });
+    @GrpcMethod('DocumentoService', 'Actualizar')
+    async actualizar(data: { id: string, doc: DocumentoDto }): Promise<EmptyResponse> {
+        const actualizado = await this._documentoService.updateDocumento({ ...data.doc, id: data.id });
+        
         if (!actualizado) {
-            throw new NotFoundException(`Documento con ID ${id} no encontrado para actualizar.`);
+            throw new RpcException({ code: 5, message: `Documento con ID ${data.id} no encontrado para actualizar.` });
         }
+
+        return { success: true };
     }
 
-    @Delete(':id')
-    async eliminar(@Param('id') id: string): Promise<void> {
-        const eliminado = await this._documentoService.deleteDocumento(id);
+    @GrpcMethod('DocumentoService', 'Eliminar')
+    async eliminar(data: { id: string }): Promise<EmptyResponse> {
+        const eliminado = await this._documentoService.deleteDocumento(data.id);
+        
         if (!eliminado) {
-            throw new NotFoundException(`Documento con ID ${id} no encontrado para eliminar.`);
+            throw new RpcException({ code: 5, message: `Documento con ID ${data.id} no encontrado para eliminar.` });
         }
-    }
 
+        return { success: true };
+    }
 }

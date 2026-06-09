@@ -5,19 +5,21 @@ import type { IDocumentoScheme } from '../../Interfaces/IDocumentoScheme.js';
 import { ComponenteModel } from '../Schemes/ComponenteScheme.js';
 import { ComponenteRepository } from './ComponenteRepository.js';
 import { Componente } from '../../Models/Componente.js';
+import { transactionContext } from '../TransactionContext.js';
 
 const componenteR = new ComponenteRepository();
 
 export class DocumentoRepository {
 
     async crear(id: string, estado: string, version: string): Promise<mongoose.Types.ObjectId> {
+        const session = transactionContext.getStore(); // 👈 Añadimos la sesión
+        
         const nuevoDoc = new DocumentoModel({
             _id: id,
             estado: estado,
             version: version
         });
-
-        const docGuardado = await nuevoDoc.save();
+        const docGuardado = await nuevoDoc.save({ ...(session ? { session } : {}) }); 
         return docGuardado._id;
     }
     async obtenerPorId(id: string, componente: Componente): Promise<Documento | null> {
