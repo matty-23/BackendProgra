@@ -3,14 +3,19 @@ import { GrpcMethod, RpcException } from '@nestjs/microservices';
 import { status } from '@grpc/grpc-js';
 import type { ICarpetaService } from '../Interfaces/ICarpetaService.js';
 import type { IDocumentoService } from '../Interfaces/IDocumentoService.js';
-import { CarpetaDto  } from '../DTO/CarpetaDTO.js';
+import { CarpetaDto } from '../DTO/CarpetaDTO.js';
 import { Carpeta } from '../Models/Carpeta.js';
-import { ComponenteDto} from '../DTO/ComponenteDTO.js';
+import { ComponenteDto } from '../DTO/ComponenteDTO.js';
+import { JwtGrpcAuthGuard } from '../Guards/JwtAuthGuard.js';
 
 @Controller()
+@UseGuards(JwtGrpcAuthGuard)
 export class CarpetaController {
 
-    constructor(@Inject('ICarpetaService') private readonly _CarpetaService: ICarpetaService,@Inject('IDocumentoService') private readonly _DocumentoService: IDocumentoService) { }
+    constructor(
+        @Inject('ICarpetaService') private readonly _CarpetaService: ICarpetaService,
+        @Inject('IDocumentoService') private readonly _DocumentoService: IDocumentoService
+    ) { }
 
     @GrpcMethod('CarpetaService', 'GetById')
     async getById(data: { id: string }): Promise<CarpetaDto> {
@@ -19,7 +24,7 @@ export class CarpetaController {
         if (!carpeta) {
             throw new RpcException({
                 code: status.NOT_FOUND,
-                message: `Carpeta con ID ${data.id} no encontrado.`
+                message: `Carpeta con ID ${data.id} no encontrada.`
             });
         }
 
@@ -40,7 +45,7 @@ export class CarpetaController {
         if (componentes === null) {
             throw new RpcException({
                 code: status.NOT_FOUND,
-                message: `Carpeta con ID ${data.id} no encontrado.`
+                message: `Carpeta con ID ${data.id} no encontrada.`
             });
         }
 
@@ -77,11 +82,19 @@ export class CarpetaController {
     }
 
     @GrpcMethod('CarpetaService', 'Actualizar')
-    async actualizar(data: { id: string, doc: CarpetaDto }): Promise<{ success: boolean }> {
+    async actualizar(data: { id: string, carp: CarpetaDto }): Promise<{ success: boolean }> {
         try {
             const actualizado = await this._CarpetaService.updateCarpeta(
                 data.id, 
-                new Carpeta(data.id, data.doc.nombre, data.doc.fechaCreacion ?? new Date(), data.doc.fechaUltimaModificacion ?? new Date(), data.doc.idUsuario, data.doc.ReadMe, [])
+                new Carpeta(
+                    data.id, 
+                    data.carp.nombre, 
+                    data.carp.fechaCreacion ? new Date(data.carp.fechaCreacion) : new Date(), 
+                    data.carp.fechaUltimaModificacion ? new Date(data.carp.fechaUltimaModificacion) : new Date(), 
+                    data.carp.idUsuario, 
+                    data.carp.ReadMe, 
+                    []
+                )
             );
 
             if (!actualizado) {
@@ -108,11 +121,10 @@ export class CarpetaController {
             if (!eliminado) {
                 throw new RpcException({
                     code: status.NOT_FOUND,
-                    message: `Carpeta con ID ${data.id} no encontrado para eliminar.`
-                
+                    message: `Carpeta con ID ${data.id} no encontrada para eliminar.`
                 });
             }
-            return { success: true }
+            return { success: true };
         } catch (error: any) {
             if (error instanceof RpcException) throw error;
 
@@ -124,7 +136,7 @@ export class CarpetaController {
     }
 
     @GrpcMethod('CarpetaService', 'CarpetasPrincipales')
-    async getCarpetasPrincipales(data: { id: string }) { 
+    async getCarpetasPrincipales(data: { id: string }): Promise<{ carpetasPrincipales: any[] }> { 
         const carpetasPrincipales = await this._CarpetaService.traerLasCarpetasPrincipales(data.id);
         
         if (!carpetasPrincipales || carpetasPrincipales.length === 0) {
@@ -135,13 +147,16 @@ export class CarpetaController {
         }
 
         const carpetasMapeadas = carpetasPrincipales.map(carpeta => {
+            // Corregido: Se añaden 'ReadMe', 'tipo' y 'componentes' para cumplir con ComponenteDtoGRPC
             const componentesMapeados = carpeta.getComponentes().map(c => ({
                 id: c.getId(), 
                 nombre: c.getNombre(), 
                 fechaCreacion: c.getFechaCreacion()?.toISOString() || new Date().toISOString(), 
                 fechaUltimaModificacion: c.getFechaUltimaModificacion()?.toISOString() || new Date().toISOString(), 
-                idUsuario: data.id,
-                tipo: c.getTipo()
+                idUsuario: c.getIdUsuario() || data.id,
+                ReadMe: typeof (c as any).getReadMe === 'function' ? (c as any).getReadMe() : "",
+                tipo: c.getTipo() || "Componente",
+                componentes: [] // Satisface el campo 'repeated' de ComponenteDtoGRPC
             }));
 
             return {
@@ -151,6 +166,7 @@ export class CarpetaController {
                 fechaUltimaModificacion: carpeta.getFechaUltimaModificacion()?.toISOString() || new Date().toISOString(),
                 idUsuario: data.id,
                 ReadMe: carpeta.getReadMe() || "",
+                tipo: "Carpeta", 
                 componentes: componentesMapeados 
             };
         });
