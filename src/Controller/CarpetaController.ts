@@ -6,8 +6,10 @@ import type { IDocumentoService } from '../Interfaces/IDocumentoService.js';
 import { CarpetaDto  } from '../DTO/CarpetaDTO.js';
 import { Carpeta } from '../Models/Carpeta.js';
 import { ComponenteDto} from '../DTO/ComponenteDTO.js';
+import { JwtGrpcAuthGuard } from '../Guards/JwtAuthGuard.js';
 
 @Controller()
+@UseGuards(JwtGrpcAuthGuard)
 export class CarpetaController {
 
     constructor(@Inject('ICarpetaService') private readonly _CarpetaService: ICarpetaService,@Inject('IDocumentoService') private readonly _DocumentoService: IDocumentoService) { }

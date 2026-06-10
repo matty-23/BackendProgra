@@ -2,14 +2,14 @@ import { Controller, Inject, UseGuards } from '@nestjs/common';
 import { GrpcMethod, RpcException } from '@nestjs/microservices';
 import { IDocumentoService } from '../Interfaces/IDocumentoService.js';
 import { DocumentoDto } from '../DTO/DocumentoDTO.js';
-import { JwtAuthGuard } from '../Guards/JwtAuthGuard.js';
+import { JwtGrpcAuthGuard } from '../Guards/JwtAuthGuard.js';
 
-// Interfaz para representar la respuesta vacía de gRPC (como EmptyResponse)
 interface EmptyResponse {
     success: boolean;
 }
 
 @Controller()
+@UseGuards(JwtGrpcAuthGuard)
 export class DocumentoController {
 
     constructor(@Inject('IDocumentoService') private readonly _documentoService: IDocumentoService) { }
@@ -28,7 +28,6 @@ export class DocumentoController {
             version: c.getVersion()
         } as DocumentoDto));
 
-        // gRPC exige devolver un objeto (message) que contenga la lista
         return { documentos: DocumentosDto };
     }
 
@@ -37,7 +36,6 @@ export class DocumentoController {
         const Documento = await this._documentoService.getDocumentoById(data.id);
 
         if (!Documento) {
-            // Se usa RpcException con el código 5 que equivale a NOT_FOUND
             throw new RpcException({ code: 5, message: `Documento con ID ${data.id} no encontrado.` });
         }
 
@@ -57,7 +55,6 @@ export class DocumentoController {
         const Documento = await this._documentoService.addDocumento(data.doc, data.idCarpeta);
         
         if (!Documento) {
-            // Código 3 equivale a INVALID_ARGUMENT (BadRequest)
             throw new RpcException({ code: 3, message: "Error al registrar el Documento." });
         }
 

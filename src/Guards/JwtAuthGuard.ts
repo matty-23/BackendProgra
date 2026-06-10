@@ -1,24 +1,39 @@
-import { Injectable, type  CanActivate, type ExecutionContext, UnauthorizedException } from '@nestjs/common';
-import jwt from 'jsonwebtoken';
+import { Injectable, type  CanActivate, type ExecutionContext} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { RpcException } from '@nestjs/microservices';
+import { status, Metadata } from '@grpc/grpc-js';
 
 @Injectable()
-export class JwtAuthGuard implements CanActivate {
-  canActivate(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest();
-    const authHeader = request.headers.authorization;
+export class JwtGrpcAuthGuard implements CanActivate {
+  constructor(private readonly jwtService: JwtService) {}
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new UnauthorizedException('Token no proporcionado');
+  canActivate(context: ExecutionContext): boolean {
+    const ctx = context.switchToRpc().getContext();
+    
+    const metadata: Metadata = ctx instanceof Metadata ? ctx : (ctx as any);
+
+    const authHeader = metadata.get('authorization');
+
+    const rawToken = authHeader?.[0];
+    const token =typeof rawToken === 'string'? rawToken.replace(/^Bearer\s+/i, ''): Buffer.isBuffer(rawToken)? rawToken.toString('utf8').replace(/^Bearer\s+/i, ''): null;
+
+    if (!token) {
+      throw new RpcException({
+        code: status.UNAUTHENTICATED,
+        message: 'No se proporcionó token de autenticación.',
+      });
     }
 
-    const token = authHeader.split(' ')[1];
-
     try {
-      const payload = jwt.verify(token, process.env.JWT_SECRET!);
-      request.user = payload; 
+      const payload = this.jwtService.verify(token);
+      metadata.set('user', JSON.stringify(payload));
+      
       return true;
-    } catch (error) {
-      throw new UnauthorizedException('Token inválido o expirado');
+    } catch (err) {
+      throw new RpcException({
+        code: status.UNAUTHENTICATED,
+        message: 'Token inválido o expirado.',
+      });
     }
   }
 }
