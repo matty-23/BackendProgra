@@ -6,10 +6,8 @@ import type { IDocumentoService } from '../Interfaces/IDocumentoService.js';
 import { CarpetaDto  } from '../DTO/CarpetaDTO.js';
 import { Carpeta } from '../Models/Carpeta.js';
 import { ComponenteDto} from '../DTO/ComponenteDTO.js';
-import { JwtGrpcAuthGuard } from '../Guards/JwtAuthGuard.js';
 
 @Controller()
-@UseGuards(JwtGrpcAuthGuard)
 export class CarpetaController {
 
     constructor(@Inject('ICarpetaService') private readonly _CarpetaService: ICarpetaService,@Inject('IDocumentoService') private readonly _DocumentoService: IDocumentoService) { }
@@ -126,44 +124,37 @@ export class CarpetaController {
     }
 
     @GrpcMethod('CarpetaService', 'CarpetasPrincipales')
-    async getMiArea(data: { id: string }) {
-
-        const carpetasPrincipalesMatriz = await this._CarpetaService.traerLasCarpetasPrincipales(data.id);
-        const [carpetasUno] = carpetasPrincipalesMatriz; 
-        if (!carpetasUno || carpetasUno.length === 0) {
+    async getCarpetasPrincipales(data: { id: string }) { 
+        const carpetasPrincipales = await this._CarpetaService.traerLasCarpetasPrincipales(data.id);
+        
+        if (!carpetasPrincipales || carpetasPrincipales.length === 0) {
             throw new RpcException({
                 code: status.NOT_FOUND,
                 message: `No se encontraron carpetas principales para el usuario con ID ${data.id}.`
             });
         }
-        const miArea = carpetasUno[0];
 
-        if (!miArea) {
-            throw new RpcException({
-                code: status.NOT_FOUND,
-                message: `Carpeta 'Mi Area' no encontrada para el usuario con ID ${data.id}.`
-            });
-        }
-        const hijosMapeados = miArea.getComponentes().map(c => ({
-            id: c.getId(), 
-            nombre: c.getNombre(), 
-            fechaCreacion: c.getFechaCreacion()?.toString() || new Date().toString(), 
-            fechaUltimaModificacion: c.getFechaUltimaModificacion()?.toString() || new Date().toString(), 
-            idUsuario: data.id,
-            tipo: c.getTipo()
-        }));
+        const carpetasMapeadas = carpetasPrincipales.map(carpeta => {
+            const componentesMapeados = carpeta.getComponentes().map(c => ({
+                id: c.getId(), 
+                nombre: c.getNombre(), 
+                fechaCreacion: c.getFechaCreacion()?.toISOString() || new Date().toISOString(), 
+                fechaUltimaModificacion: c.getFechaUltimaModificacion()?.toISOString() || new Date().toISOString(), 
+                idUsuario: data.id,
+                tipo: c.getTipo()
+            }));
 
-        // En el Backend Core
-return {
-    listaUno: [{ 
-        id: miArea.getId(),
-        nombre: miArea.getNombre(),
-        fechaCreacion: miArea.getFechaCreacion()?.toString() || new Date().toString(),
-        fechaUltimaModificacion: miArea.getFechaUltimaModificacion()?.toString() || new Date().toString(),
-        idUsuario: data.id,
-        ReadMe: miArea.getReadMe(),
-        componentes: hijosMapeados 
-    }] 
-};
-        
-    }}
+            return {
+                id: carpeta.getId(),
+                nombre: carpeta.getNombre(),
+                fechaCreacion: carpeta.getFechaCreacion()?.toISOString() || new Date().toISOString(),
+                fechaUltimaModificacion: carpeta.getFechaUltimaModificacion()?.toISOString() || new Date().toISOString(),
+                idUsuario: data.id,
+                ReadMe: carpeta.getReadMe() || "",
+                componentes: componentesMapeados 
+            };
+        });
+
+        return { carpetasPrincipales: carpetasMapeadas };
+    }
+}
