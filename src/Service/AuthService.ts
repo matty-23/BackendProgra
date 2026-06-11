@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { RpcException } from '@nestjs/microservices';
 import * as bcrypt from 'bcrypt';
 import type { IUsuarioService } from '../Interfaces/IUsuarioService.js';
@@ -9,15 +9,10 @@ import { AuthResponseDto } from '../DTO/AuthResponseDto.js';
 import { TokenDto } from '../DTO/TokenDto.js';
 import type { IAuthService } from '../Interfaces/IAuthService.js';
 import { TokenRepository } from '../Database/Context/TokenRepository.js';
-import { forwardRef } from '@nestjs/common';
 
 @Injectable()
 export class AuthService implements IAuthService {
-    constructor(
-        @Inject('IUsuarioService') private readonly usuarioService: IUsuarioService,
-        @Inject('ITokenService') private readonly tokenService: ITokenService,
-        @Inject(forwardRef(() => TokenRepository)) private readonly refreshTokenRepo: TokenRepository
-    ) {}
+    constructor(@Inject('IUsuarioService') private readonly usuarioService: IUsuarioService,@Inject('ITokenService') private readonly tokenService: ITokenService,@Inject(forwardRef(() => TokenRepository)) private readonly refreshTokenRepo: TokenRepository) {}
     
     async register(data: UsuarioDto): Promise<AuthResponseDto> {
         if (!data.password) throw new RpcException('La contraseña es requerida');
@@ -25,7 +20,7 @@ export class AuthService implements IAuthService {
         const usernameExistente = await this.usuarioService.getUsuarioByUsername(data.username);
         if (usernameExistente) throw new RpcException('El nombre de usuario ya está en uso');
 
-        const emailExistente = await (this.usuarioService as any).getUsuarioByEmail(data.email);
+        const emailExistente = await this.usuarioService.getUsuarioByEmail(data.email);
         if (emailExistente) throw new RpcException('El correo electrónico ya está registrado');
 
         const passwordHasheada = await bcrypt.hash(data.password, 10);
@@ -59,7 +54,8 @@ export class AuthService implements IAuthService {
             const accessToken = this.tokenService.generateAccessToken(usuario.getId(), usuario.getUsername());
             
             return { accessToken };
-        } catch (error) {
+        } catch (error: any) {
+            if (error instanceof RpcException) throw error;
             throw new RpcException('Refresh token inválido o expirado');
         }
     }
@@ -73,7 +69,8 @@ export class AuthService implements IAuthService {
         const accessToken = this.tokenService.generateAccessToken(idUsuario, username);
         const refreshToken = this.tokenService.generateRefreshToken(idUsuario);
 
-        const expiresInDays = parseInt(process.env.JWT_REFRESH_EXPIRES_IN!); 
+        const envVal = process.env.JWT_REFRESH_EXPIRES_IN || '7';
+        const expiresInDays = parseInt(envVal.replace(/\D/g, '')) || 7;
 
         await this.guardarTokens(refreshToken, idUsuario, expiresInDays);
 
@@ -86,10 +83,6 @@ export class AuthService implements IAuthService {
     }
 
     private async guardarTokens(refreshToken: string, idUsuario: string, expiresInDays: number) {
-        try { 
-            await this.refreshTokenRepo.guardar(refreshToken, idUsuario, expiresInDays);
-        } catch(error) {
-            throw error;
-        }
+        await this.refreshTokenRepo.guardar(refreshToken, idUsuario, expiresInDays);
     }
 }

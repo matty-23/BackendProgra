@@ -3,7 +3,7 @@ export class UsuarioDto {
   readonly nombre!: string;
   readonly apellido?: string;
   readonly email!: string;
-  readonly fechaCreacion?: Date;
+  readonly fechaCreacion?: string;
   readonly username!: string;
   readonly password?: string;
 }
