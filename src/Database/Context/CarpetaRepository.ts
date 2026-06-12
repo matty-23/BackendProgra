@@ -64,24 +64,24 @@ export class CarpetaRepository {
 
     async actualizar(id: string, datosActualizados: Carpeta): Promise<Carpeta | null> {
         const session = transactionContext.getStore();
-        
-        const updateData: any = { ReadMe: datosActualizados.getReadMe() };
+        const compIds = datosActualizados.getComponentes().map(c => c.getId());
+        const updateData: any = { ReadMe: datosActualizados.getReadMe(), componentes: compIds };
 
         const carpetaActualizada = await CarpetaModel.findByIdAndUpdate(
             id,
             { $set: updateData },
             { new: true, session: session || null }
-        ).lean<ICarpetaScheme>().exec();
-        
+        ).populate("componentes").lean<ICarpetaScheme>().exec();
+
         if (!carpetaActualizada) return null;
-        
+
         return new Carpeta(
-            id, 
-            datosActualizados.getNombre(), 
-            datosActualizados.getFechaCreacion(), 
-            datosActualizados.getFechaUltimaModificacion(), 
-            datosActualizados.getIdUsuario(), 
-            carpetaActualizada.ReadMe, 
+            id,
+            datosActualizados.getNombre(),
+            datosActualizados.getFechaCreacion(),
+            datosActualizados.getFechaUltimaModificacion(),
+            datosActualizados.getIdUsuario(),
+            carpetaActualizada.ReadMe,
             []
         );
     }

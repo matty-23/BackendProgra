@@ -78,7 +78,8 @@ export class CarpetaService extends ICarpetaService {
         if (!componenteExistente) return false;
         const carpetaExistente = await this._carpetaRepo.obtenerPorId(id, componenteExistente);
         if (!carpetaExistente) return false;
-
+                console.log('Padre después:', carpetaActualizada.getComponentes().length, 'hijos');
+                console.log('IDs a guardar:', carpetaActualizada.getComponentes().map(c => c.getId()));
         try {
             await this._usuarioRepo.obtenerUsuarioPorId(carpetaActualizada.getIdUsuario());
         } catch (error) {
