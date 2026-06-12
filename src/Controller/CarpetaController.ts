@@ -28,7 +28,7 @@ export class CarpetaController {
         return {
             id: carpeta.getId(),
             nombre: carpeta.getNombre(),
-            fechaCreacion: carpeta.getFechaCreacion()?.toISOString(), // [A2]
+            fechaCreacion: carpeta.getFechaCreacion()?.toISOString(), 
             fechaUltimaModificacion: carpeta.getFechaUltimaModificacion()?.toISOString(),
             idUsuario: carpeta.getIdUsuario(),
             ReadMe: carpeta.getReadMe()
@@ -65,7 +65,7 @@ export class CarpetaController {
             return {
                 id: carpeta.getId(),
                 nombre: carpeta.getNombre(),
-                fechaCreacion: carpeta.getFechaCreacion()?.toISOString(), // [A2]
+                fechaCreacion: carpeta.getFechaCreacion()?.toISOString(), 
                 fechaUltimaModificacion: carpeta.getFechaUltimaModificacion()?.toISOString(),
                 idUsuario: carpeta.getIdUsuario(),
                 ReadMe: carpeta.getReadMe()
@@ -81,19 +81,19 @@ export class CarpetaController {
     @GrpcMethod('CarpetaService', 'Actualizar')
     async actualizar(data: { id: string, carp: CarpetaDto }): Promise<{ success: boolean }> {
         try {
-            const actualizado = await this._CarpetaService.updateCarpeta(
-                data.id, 
-                new Carpeta(
-                    data.id, 
-                    data.carp.nombre, 
-                    data.carp.fechaCreacion ? new Date(data.carp.fechaCreacion) : new Date(), 
-                    data.carp.fechaUltimaModificacion ? new Date(data.carp.fechaUltimaModificacion) : new Date(), 
-                    data.carp.idUsuario, 
-                    data.carp.ReadMe, 
-                    []
-                )
-            );
+            const carpetaExistente = await this._CarpetaService.getCarpetaById(data.id);
+            
+            if (!carpetaExistente) {
+                throw new RpcException({
+                    code: status.NOT_FOUND,
+                    message: `Carpeta con ID ${data.id} no encontrada para actualizar.`
+                });
+            }
 
+            carpetaExistente.setNombre(data.carp.nombre);
+            carpetaExistente.setReadMe(data.carp.ReadMe);
+
+            const actualizado = await this._CarpetaService.updateCarpeta(data.id, carpetaExistente);
             if (!actualizado) {
                 throw new RpcException({
                     code: status.NOT_FOUND,

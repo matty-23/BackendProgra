@@ -59,14 +59,10 @@ export class CarpetaService extends ICarpetaService {
                 if (!padre) {
                     throw new Error("Carpeta padre no encontrada.");
                 }
-                console.log('Padre antes:', padre?.getComponentes().length, 'hijos');
 
                 padre.AñadirElemento(nuevaCarpeta);
-                console.log('Padre después:', padre.getComponentes().length, 'hijos');
-                console.log('IDs a guardar:', padre.getComponentes().map(c => c.getId()));
 
                 const actualizado = await this.updateCarpeta(padre.getId(), padre);
-                console.log('Resultado updateCarpeta:', actualizado);
             }
             return nuevaCarpeta;
         });
