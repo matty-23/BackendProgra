@@ -1,15 +1,26 @@
 import { Injectable } from '@nestjs/common';
 import jwt, { type SignOptions } from 'jsonwebtoken';
 import type { ITokenService } from '../Interfaces/ITokenService.js';
-
+import type { JwtPayload } from 'jsonwebtoken';
 @Injectable()
-export class TokenService  implements ITokenService {
+export class TokenService implements ITokenService {
     generateAccessToken(idUsuario: string, username: string): string {
+        const secret = process.env.JWT_SECRET;
+        const expiresIn = process.env.JWT_EXPIRES_IN;
+
+        if (!secret || !expiresIn) {
+            throw new Error('JWT configuration missing');
+        }
+
         return jwt.sign(
             { idUsuario, username },
-            process.env.JWT_SECRET!,
-            { expiresIn: process.env.JWT_EXPIRES_IN as SignOptions['expiresIn'] }
+            secret,
+            { expiresIn }
         );
+    }
+
+    verifyAccessToken(token: string): JwtPayload {
+        return jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
     }
 
     generateRefreshToken(idUsuario: string): string {

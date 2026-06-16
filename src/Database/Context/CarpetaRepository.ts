@@ -6,7 +6,6 @@ import { Componente } from '../../Models/Componente.js';
 import { ComponenteRepository } from './ComponenteRepository.js';
 import { transactionContext } from '../TransactionContext.js';
 import { Injectable } from '@nestjs/common';
-import { ok } from 'node:assert';
 
 @Injectable()
 export class CarpetaRepository {
@@ -43,32 +42,48 @@ export class CarpetaRepository {
         for (const compId of carpeta.componentes) {
             const componente = await repositorioComponente.obtenerPorId(compId.toString());
             if (componente !== null) {
-                componentes.push(componente);}}
+                componentes.push(componente);
+            }
+        }
         return componentes;
     }
 
     async obtenerTodasLasCarpetasDeUnNivel(componentes: Componente[]): Promise<Carpeta[]> {
         const carpetasEncontradas: Carpeta[] = [];
         const componentesCarpeta = componentes.filter(c => c.getTipo().toLowerCase() === "carpeta");
-        
+
         for (const c of componentesCarpeta) {
             const carpeta = await this.obtenerPorId(c.getId(), c);
             if (carpeta !== null) {
-                carpetasEncontradas.push(carpeta);}}
-        
+                carpetasEncontradas.push(carpeta);
+            }
+        }
+
         return carpetasEncontradas;
     }
 
     async actualizar(id: string, datosActualizados: Carpeta): Promise<Carpeta | null> {
         const session = transactionContext.getStore();
-        const updateData: any = { ReadMe: datosActualizados.getReadMe() };
-        
-        if (datosActualizados.getComponentes()) {
-            updateData.componentes = datosActualizados.getComponentes().map(c => new Types.ObjectId(c.getId()));
-        }
-        const carpetaActualizada = await CarpetaModel.findByIdAndUpdate(id,{ $set: updateData },{ new: true }).session(session || null).lean<Carpeta>().exec();
+        const compIds = datosActualizados.getComponentes().map(c => c.getId());
+        const updateData: any = { ReadMe: datosActualizados.getReadMe(), componentes: compIds };
+
+        const carpetaActualizada = await CarpetaModel.findByIdAndUpdate(
+            id,
+            { $set: updateData },
+            { new: true, session: session || null }
+        ).populate("componentes").lean<ICarpetaScheme>().exec();
+
         if (!carpetaActualizada) return null;
-        return carpetaActualizada;
+
+        return new Carpeta(
+            id,
+            datosActualizados.getNombre(),
+            datosActualizados.getFechaCreacion(),
+            datosActualizados.getFechaUltimaModificacion(),
+            datosActualizados.getIdUsuario(),
+            carpetaActualizada.ReadMe,
+            []
+        );
     }
 
     async borrarComponenteEnPadre(idHijo: string): Promise<void> {
@@ -81,26 +96,25 @@ export class CarpetaRepository {
 
     async eliminar(id: string): Promise<boolean> {
         const session = transactionContext.getStore();
-        //Comprobar si la busqueda del ID esta bien
         const resultado = await CarpetaModel.deleteOne({ _id: new Types.ObjectId(id) }).session(session || null).exec();
         return resultado.deletedCount === 1;
     }
-async añadirComponente(idCarpeta: string, componente: Componente): Promise<string[] | null> {
-    const session = transactionContext.getStore();
-    
-    // Cambiamos $push por $addToSet
-    const carpetaActualizada = await CarpetaModel.findByIdAndUpdate(
-        idCarpeta,
-        { $addToSet: { componentes: new Types.ObjectId(componente.getId()) } }, // 👈 Esto evita duplicados
-        { returnDocument: 'after', session: session || null }
-    ).exec();
 
-    if (!carpetaActualizada) {
-        throw new Error(`La carpeta padre con ID ${idCarpeta} no fue encontrada.`);
+    async añadirComponente(idCarpeta: string, componente: Componente): Promise<string[] | null> {
+        const session = transactionContext.getStore();
+
+        const carpetaActualizada = await CarpetaModel.findByIdAndUpdate(
+            idCarpeta,
+            { $addToSet: { componentes: new Types.ObjectId(componente.getId()) } }, // 👈 Esto evita duplicados
+            { returnDocument: 'after', session: session || null }
+        ).exec();
+
+        if (!carpetaActualizada) {
+            throw new Error(`La carpeta padre con ID ${idCarpeta} no fue encontrada.`);
+        }
+
+        return carpetaActualizada.componentes.map(c => c.toString());
     }
-
-    return carpetaActualizada.componentes.map(c => c.toString());
-}
 
 
 

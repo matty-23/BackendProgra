@@ -59,14 +59,10 @@ export class CarpetaService extends ICarpetaService {
                 if (!padre) {
                     throw new Error("Carpeta padre no encontrada.");
                 }
-                console.log('Padre antes:', padre?.getComponentes().length, 'hijos');
 
                 padre.AñadirElemento(nuevaCarpeta);
-                console.log('Padre después:', padre.getComponentes().length, 'hijos');
-                console.log('IDs a guardar:', padre.getComponentes().map(c => c.getId()));
 
                 const actualizado = await this.updateCarpeta(padre.getId(), padre);
-                console.log('Resultado updateCarpeta:', actualizado);
             }
             return nuevaCarpeta;
         });
@@ -78,7 +74,8 @@ export class CarpetaService extends ICarpetaService {
         if (!componenteExistente) return false;
         const carpetaExistente = await this._carpetaRepo.obtenerPorId(id, componenteExistente);
         if (!carpetaExistente) return false;
-
+                console.log('Padre después:', carpetaActualizada.getComponentes().length, 'hijos');
+                console.log('IDs a guardar:', carpetaActualizada.getComponentes().map(c => c.getId()));
         try {
             await this._usuarioRepo.obtenerUsuarioPorId(carpetaActualizada.getIdUsuario());
         } catch (error) {

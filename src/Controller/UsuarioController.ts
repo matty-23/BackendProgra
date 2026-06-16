@@ -25,9 +25,9 @@ export class UsuarioController {
             nombre: usuario.getNombre(),
             email: usuario.getEmail(),
             apellido: usuario.getApellido(),
-            fechaCreacion: usuario.getFechaCreacion(),
+            fechaCreacion: usuario.getFechaCreacion()?.toISOString(), 
             username: usuario.getUsername()
-        };
+        } as UsuarioDto;
     }
 
     @GrpcMethod('UsuarioService', 'GetByUsername')
@@ -36,7 +36,7 @@ export class UsuarioController {
         
         if (!usuario) {
             throw new RpcException({
-                code: status.NOT_FOUND, // Código 5
+                code: status.NOT_FOUND,
                 message: `Usuario con username ${data.username} no encontrado.`
             });
         }
@@ -46,9 +46,9 @@ export class UsuarioController {
             nombre: usuario.getNombre(),
             email: usuario.getEmail(),
             apellido: usuario.getApellido(),
-            fechaCreacion: usuario.getFechaCreacion(),
+            fechaCreacion: usuario.getFechaCreacion()?.toISOString(), 
             username: usuario.getUsername()
-        };
+        }  as UsuarioDto;
     }
 
     @GrpcMethod('UsuarioService', 'Actualizar')
@@ -98,7 +98,7 @@ export class UsuarioController {
             if (error instanceof RpcException) throw error;
 
             throw new RpcException({
-                code: status.INTERNAL, // Código 13
+                code: status.INTERNAL,
                 message: error.message || "Error interno al eliminar el usuario."
             });
         }

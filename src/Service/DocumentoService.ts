@@ -5,33 +5,25 @@ import { ComponenteRepository } from "../Database/Context/ComponenteRepository.j
 import { CarpetaRepository } from "../Database/Context/CarpetaRepository.js";
 import { Documento } from "../Models/Documento.js";
 import { Componente } from "../Models/Componente.js"
-import mongoose, { mongo } from "mongoose";
 import { TransactionManager } from "../Database/TransactionManager.js";
 import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { UsuarioRepository } from "../Database/Context/UsuarioRepository.js";
-import { Carpeta } from "../Models/Carpeta.js";
 
 @Injectable()
 export class DocumentoService extends IDocumentoService {
-    constructor(
-        @Inject(forwardRef(() => DocumentoRepository)) private readonly _docRepo: DocumentoRepository,
-        @Inject(forwardRef(() => CarpetaRepository)) private readonly _carpetaRepo: CarpetaRepository,
-        @Inject(forwardRef(() => ComponenteRepository)) private readonly _componenteRepo: ComponenteRepository,
-        @Inject(forwardRef(() => TransactionManager)) private readonly txManager: TransactionManager,
-        @Inject(forwardRef(() => UsuarioRepository)) private readonly _usuarioRepo: UsuarioRepository
-
-    ) {
-        super();
-    }
+    constructor(@Inject(forwardRef(() => DocumentoRepository)) private readonly _docRepo: DocumentoRepository,@Inject(forwardRef(() => CarpetaRepository)) private readonly _carpetaRepo: CarpetaRepository,@Inject(forwardRef(() => ComponenteRepository)) private readonly _componenteRepo: ComponenteRepository,@Inject(forwardRef(() => TransactionManager)) private readonly txManager: TransactionManager,@Inject(forwardRef(() => UsuarioRepository)) private readonly _usuarioRepo: UsuarioRepository) {super();}
 
     async getDocumentos(): Promise<Documento[]> {
         const componentes = await this._componenteRepo.obtenerTodos();
         return await this._docRepo.obtenerTodos(componentes);
     }
+
     async getDocumentosUsuario(idUs: string): Promise<Documento[]> {
         const componentes = await this._componenteRepo.obtenerTodos();
-        return await this._docRepo.obtenerPoridUsuario(idUs);
+        const compUsuario = componentes.filter(c => c.getIdUsuario() === idUs && c.getTipo() === "documento");
+        return await this._docRepo.obtenerTodos(compUsuario);
     }
+
     async getDocumentoById(id: string): Promise<Documento> {
         const componente = await this._componenteRepo.obtenerPorId(id.toString());
         if (!componente) throw new Error("Componente no encontrado");
@@ -39,6 +31,7 @@ export class DocumentoService extends IDocumentoService {
         if (!documento) throw new Error("Documento no encontrado");
         return documento;
     }
+
     async addDocumento(documento: DocumentoDto, idCarpeta: string): Promise<Documento> {
         try {
             await this._usuarioRepo.obtenerUsuarioPorId(documento.idUsuario);
@@ -53,18 +46,16 @@ export class DocumentoService extends IDocumentoService {
                 new Date(),
                 new Date(),
                 documento.idUsuario,
-                "PENDING_UPLOAD", // Estado inicial seguro
+                "PENDING_UPLOAD", 
                 "1.0"
             );
 
-            // 1. Crear el Componente
             const idComponente = await this._componenteRepo.crearComponente(
                 nuevoDocumento.getNombre(),
                 nuevoDocumento.getIdUsuario(),
-                "documento" // Fijo para evitar errores de mayúsculas/minúsculas
+                "documento" 
             );
 
-            // 2. Crear el Documento en BD
             const idDocumento = await this._docRepo.crear(
                 idComponente.toString(),
                 nuevoDocumento.getEstado(),
@@ -73,7 +64,6 @@ export class DocumentoService extends IDocumentoService {
 
             nuevoDocumento.setId(idDocumento.toString());
 
-            // 3. Relacionar con la Carpeta (Se eliminó el código duplicado que tenías)
             await this._carpetaRepo.añadirComponente(
                 idCarpeta,
                 new Componente(
@@ -89,6 +79,7 @@ export class DocumentoService extends IDocumentoService {
             return nuevoDocumento;
         });
     }
+
     async updateDocumento(documento: DocumentoDto): Promise<boolean> {
         if (!documento.id) {
             throw new Error("El id del documento es requerido para la actualización.");
@@ -103,16 +94,18 @@ export class DocumentoService extends IDocumentoService {
         }
         const estadoFinal = documento.estado !== undefined ? documento.estado : documentoExistente.getEstado();
         const versionFinal = documento.version !== undefined ? documento.version : documentoExistente.getVersion();
-        this._componenteRepo.actualizar(
+        
+        await this._componenteRepo.actualizar(
             componenteExistente.getId(),
             new Componente(documento.id, documento.nombre, componenteExistente.getFechaCreacion(), new Date(), documento.idUsuario, "documento")
         );
-        this._docRepo.actualizar(
+        await this._docRepo.actualizar(
             documento.id.toString(),
             new Documento(documento.id, documento.nombre, componenteExistente.getFechaCreacion(), new Date(), documento.idUsuario, estadoFinal, versionFinal)
         );
         return true;
     }
+
     async deleteDocumento(id: string): Promise<boolean> {
         const componenteExistente = await this._componenteRepo.obtenerPorId(id.toString());
         if (!componenteExistente) {

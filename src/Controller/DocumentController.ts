@@ -4,9 +4,7 @@ import { IDocumentoService } from '../Interfaces/IDocumentoService.js';
 import { DocumentoDto } from '../DTO/DocumentoDTO.js';
 import { JwtGrpcAuthGuard } from '../Guards/JwtAuthGuard.js';
 
-interface EmptyResponse {
-    success: boolean;
-}
+interface EmptyResponse {success: boolean;}
 
 @Controller()
 @UseGuards(JwtGrpcAuthGuard)
@@ -21,12 +19,12 @@ export class DocumentoController {
         const DocumentosDto = Documentos.map(c => ({
             id: c.getId(),
             nombre: c.getNombre(),
-            fechaCreacion: c.getFechaCreacion(),
-            fechaUltimaModificacion: c.getFechaUltimaModificacion(),
+            fechaCreacion: c.getFechaCreacion()?.toISOString(), 
+            fechaUltimaModificacion: c.getFechaUltimaModificacion()?.toISOString(),
             idUsuario: c.getIdUsuario(),
             estado: c.getEstado(),
             version: c.getVersion()
-        } as DocumentoDto));
+        } as unknown as DocumentoDto));
 
         return { documentos: DocumentosDto };
     }
@@ -35,19 +33,17 @@ export class DocumentoController {
     async getById(data: { id: string }): Promise<DocumentoDto> {
         const Documento = await this._documentoService.getDocumentoById(data.id);
 
-        if (!Documento) {
-            throw new RpcException({ code: 5, message: `Documento con ID ${data.id} no encontrado.` });
-        }
+        if (!Documento) {throw new RpcException({ code: 5, message: `Documento con ID ${data.id} no encontrado.` });}
 
         return {
             id: Documento.getId(),
             nombre: Documento.getNombre(),
-            fechaCreacion: Documento.getFechaCreacion(),
-            fechaUltimaModificacion: Documento.getFechaUltimaModificacion(),
+            fechaCreacion: Documento.getFechaCreacion()?.toISOString(), // [A3]
+            fechaUltimaModificacion: Documento.getFechaUltimaModificacion()?.toISOString(),
             idUsuario: Documento.getIdUsuario(),
             estado: Documento.getEstado(),
             version: Documento.getVersion()
-        };
+        } as unknown as DocumentoDto;
     }
 
     @GrpcMethod('DocumentoService', 'Registrar')
@@ -61,12 +57,12 @@ export class DocumentoController {
         return {
             id: Documento.getId(),
             nombre: Documento.getNombre(),
-            fechaCreacion: Documento.getFechaCreacion(),
-            fechaUltimaModificacion: Documento.getFechaUltimaModificacion(),
+            fechaCreacion: Documento.getFechaCreacion()?.toISOString(), 
+            fechaUltimaModificacion: Documento.getFechaUltimaModificacion()?.toISOString(),
             idUsuario: Documento.getIdUsuario(),
             estado: Documento.getEstado(),
             version: Documento.getVersion()
-        };
+        } as unknown as DocumentoDto;
     }
 
     @GrpcMethod('DocumentoService', 'Actualizar')
