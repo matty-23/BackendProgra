@@ -10,4 +10,5 @@ export abstract class ICarpetaService {
     abstract updateCarpeta(id: string, carpetaActualizada: Carpeta): Promise<boolean>;
     abstract deleteCarpeta(id: string): Promise<boolean>;
     abstract getComponentesCarpeta(id: string): Promise<Componente[] | null>;
+    abstract traerLasCarpetasPrincipales(IdUsuario: string): Promise<Carpeta[]>;
 }

@@ -51,12 +51,15 @@ export class Carpeta extends Componente {
 
     AñadirElemento(componente: Componente): void {
         this.componentes.push(componente);
+        console.log(`Elemento ${componente.getNombre()} añadido a la carpeta ${this.getNombre()}`);
     }
 
     EliminarElemento(id: string): void {
         this.componentes = this.componentes.filter(c => c.getId() == id);
     }
 
-
+setComponentes(componentes: Componente[]): void {
+        this.componentes = componentes;
+    }
 
 }

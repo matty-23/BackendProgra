@@ -83,4 +83,18 @@ export class ComponenteRepository {
         const resultado = await ComponenteModel.deleteOne({ _id: new Types.ObjectId(id)}).session(session || null).exec();
         return resultado.deletedCount === 1;
     }
+    async traerComponenteUsuario(idUsuario: string ): Promise<Componente | null> {
+        const session = transactionContext.getStore();
+        const componente = await ComponenteModel.findOne({ nombre: idUsuario }).session(session || null).lean<IComponenteScheme>();
+        if (!componente) return null;
+
+        return new Componente(
+            componente._id.toString(), 
+            componente.nombre, 
+            componente.fechaCreacion, 
+            componente.fechaUltimaModificacion, 
+            componente.idUsuario.toString(),
+            componente.tipo
+        );}
+
 }

@@ -85,12 +85,23 @@ export class CarpetaRepository {
         const resultado = await CarpetaModel.deleteOne({ _id: new Types.ObjectId(id) }).session(session || null).exec();
         return resultado.deletedCount === 1;
     }
-    async añadirComponente(idCarpeta: string, componente: Componente): Promise<string[] | null> {
-        const session = transactionContext.getStore();
-        const carpeta = await CarpetaModel.findById(idCarpeta).session(session || null).exec();
-        if (!carpeta) return null;
-        carpeta.componentes.push(new Types.ObjectId(componente.getId()));
-        const carpetaActualizada = await carpeta.save(session ? { session } : {});
-        return carpeta.componentes.map(c => c.toString());
+async añadirComponente(idCarpeta: string, componente: Componente): Promise<string[] | null> {
+    const session = transactionContext.getStore();
+    
+    // Cambiamos $push por $addToSet
+    const carpetaActualizada = await CarpetaModel.findByIdAndUpdate(
+        idCarpeta,
+        { $addToSet: { componentes: new Types.ObjectId(componente.getId()) } }, // 👈 Esto evita duplicados
+        { returnDocument: 'after', session: session || null }
+    ).exec();
+
+    if (!carpetaActualizada) {
+        throw new Error(`La carpeta padre con ID ${idCarpeta} no fue encontrada.`);
     }
+
+    return carpetaActualizada.componentes.map(c => c.toString());
+}
+
+
+
 }

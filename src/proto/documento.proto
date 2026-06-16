@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package documentos;
+
+service DocumentoService {
+  rpc GetAll (EmptyRequest) returns (DocumentoListResponse) {}
+  rpc GetById (DocumentoIdRequest) returns (DocumentoDto) {}
+  rpc Registrar (RegistrarDocumentoRequest) returns (DocumentoDto) {}
+  rpc Actualizar (ActualizarDocumentoRequest) returns (EmptyResponse) {}
+  rpc Eliminar (DocumentoIdRequest) returns (EmptyResponse) {}
+}
+
+message EmptyRequest {}
+
+message DocumentoListResponse {
+  repeated DocumentoDto documentos = 1;
+}
+
+message DocumentoDto {
+  string id = 1;
+  string nombre = 2;
+  string fechaCreacion = 3;
+  string fechaUltimaModificacion = 4;
+  string idUsuario = 5;
+  string estado = 6;
+  string version = 7;
+}
+
+message DocumentoIdRequest {
+  string id = 1;
+}
+
+message RegistrarDocumentoRequest {
+  string idCarpeta = 1;
+  DocumentoDto doc = 2;
+}
+
+message ActualizarDocumentoRequest {
+  string id = 1;
+  DocumentoDto doc = 2;
+}
+
+message EmptyResponse {
+  bool success = 1;
+}

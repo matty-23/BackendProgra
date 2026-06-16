@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package carpetas;
+
+service CarpetaService {
+  rpc GetById (CarpetaIdRequest) returns (CarpetaDto) {}
+  rpc GetComponentes (CarpetaIdRequest) returns (ComponentesResponse) {}
+  rpc Registrar (RegistrarCarpetaRequest) returns (CarpetaDto) {}
+  rpc Actualizar (ActualizarCarpetaRequest) returns (EmptyResponse) {}
+  rpc Eliminar (CarpetaIdRequest) returns (EmptyResponse) {}
+  rpc CarpetasPrincipales (CarpetaIdRequest) returns (MiAreaResponse) {}
+}
+
+message MiAreaResponse {
+  repeated ComponenteDtoGRPC carpetasPrincipales = 1;
+}
+
+message ComponenteDtoGRPC {
+  string id = 1;
+  string nombre = 2;
+  string fechaCreacion = 3;
+  string fechaUltimaModificacion = 4;
+  string idUsuario = 5;
+  string ReadMe = 6;
+  string tipo = 7;
+  repeated ComponenteDtoGRPC componentes = 8;
+}
+
+message CarpetaDto {
+  string id = 1;
+  string nombre = 2;
+  string fechaCreacion = 3;
+  string fechaUltimaModificacion = 4;
+  string idUsuario = 5;
+  string ReadMe = 6;
+}
+
+message ComponenteDto {
+  string id = 1;
+  string nombre = 2;
+  string fechaCreacion = 3;
+  string fechaUltimaModificacion = 4;
+  string idUsuario = 5;
+  string tipo = 6;
+}
+
+message CarpetaIdRequest {
+  string id = 1;
+}
+
+message RegistrarCarpetaRequest {
+  string idPadre = 1;
+  CarpetaDto carp = 2;
+}
+
+message ActualizarCarpetaRequest {
+  string id = 1;
+  CarpetaDto carp = 2;
+}
+
+message ComponentesResponse {
+  repeated ComponenteDto componentes = 1;
+}
+
+message EmptyResponse {
+  bool success = 1;
+}

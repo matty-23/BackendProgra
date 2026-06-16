@@ -6,3 +6,11 @@ export class ComponenteDto {
     readonly idUsuario!: string;
     readonly tipo!: string;
 }
+export class ComponenteDtoGRPC {
+    readonly id!: string;
+    readonly nombre!: string;
+    readonly fechaCreacion!: string;
+    readonly fechaUltimaModificacion!: string;
+    readonly idUsuario!: string;
+    readonly tipo!: string;
+}

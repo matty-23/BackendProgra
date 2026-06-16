@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package usuario;
+
+service UsuarioService {
+  rpc GetById (GetByIdRequest) returns (UsuarioDto);
+  rpc GetByUsername (GetByUsernameRequest) returns (UsuarioDto);
+  rpc Actualizar (ActualizarRequest) returns (SuccessResponse);
+  rpc Eliminar (EliminarRequest) returns (SuccessResponse);
+}
+
+message UsuarioDto {
+  string id = 1;
+  string nombre = 2;
+  string email = 3;
+  string apellido = 4;
+  string fechaCreacion = 5; 
+  string username = 6;
+}
+
+message GetByIdRequest {
+  string id = 1;
+}
+
+message GetByUsernameRequest {
+  string username = 1;
+}
+
+message ActualizarRequest {
+  string id = 1;
+  UsuarioDto usuario = 2;
+}
+
+message EliminarRequest {
+  string id = 1;
+}
+
+message SuccessResponse {
+  bool success = 1;
+}

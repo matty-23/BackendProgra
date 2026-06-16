@@ -1,90 +1,106 @@
-import { Controller, Get, Param, NotFoundException, Post, Body, BadRequestException, HttpCode, Put, Delete, Inject, UseGuards } from '@nestjs/common';
+import { Controller, Inject, UseGuards } from '@nestjs/common';
+import { GrpcMethod, RpcException } from '@nestjs/microservices';
+import { status } from '@grpc/grpc-js';
 import { UsuarioDto } from '../DTO/UsuarioDTO.js';
 import type { IUsuarioService } from '../Interfaces/IUsuarioService.js';
-import { JwtAuthGuard } from '../Guards/JwtAuthGuard.js';
+import { JwtGrpcAuthGuard } from '../Guards/JwtAuthGuard.js'; 
 
-@Controller('api/Usuarios')
-@UseGuards(JwtAuthGuard)
+@Controller()
+@UseGuards(JwtGrpcAuthGuard)
 export class UsuarioController {
     constructor(@Inject('IUsuarioService') private readonly _UsuarioService: IUsuarioService) { }
 
-    @Get(":id")
-    async getUsuario(@Param("id") id: string): Promise<UsuarioDto> {
-        const usuario = await this._UsuarioService.getUsuarioById(id);
+    @GrpcMethod('UsuarioService', 'GetById')
+    async getById(data: { id: string }): Promise<UsuarioDto> {
+        const usuario = await this._UsuarioService.getUsuarioById(data.id);
 
         if (!usuario) {
-            throw new NotFoundException("Usuario no encontrado");
+            throw new RpcException({
+                code: status.NOT_FOUND, 
+                message: `Usuario con ID ${data.id} no encontrado.`
+            });
         }
-
-        const userDto: UsuarioDto = {
+        return {
             id: usuario.getId(),
             nombre: usuario.getNombre(),
             email: usuario.getEmail(),
             apellido: usuario.getApellido(),
             fechaCreacion: usuario.getFechaCreacion(),
-            username: usuario.getUsername(),
-            password: usuario.getPassword()
+            username: usuario.getUsername()
         };
-
-        return userDto;
     }
 
-    @Get("username/:username")
-    async getUsuarioByUsername(@Param("username") username: string): Promise<UsuarioDto> {
-        const usuario = await this._UsuarioService.getUsuarioByUsername(username);
+    @GrpcMethod('UsuarioService', 'GetByUsername')
+    async getUsuarioByUsername(data: { username: string }): Promise<UsuarioDto> {
+        const usuario = await this._UsuarioService.getUsuarioByUsername(data.username);
+        
         if (!usuario) {
-            throw new NotFoundException("Usuario no encontrado");
+            throw new RpcException({
+                code: status.NOT_FOUND, // Código 5
+                message: `Usuario con username ${data.username} no encontrado.`
+            });
         }
-        const userDto: UsuarioDto = {
+
+        return {
             id: usuario.getId(),
             nombre: usuario.getNombre(),
             email: usuario.getEmail(),
             apellido: usuario.getApellido(),
             fechaCreacion: usuario.getFechaCreacion(),
-            username: usuario.getUsername(),
-            password: usuario.getPassword()
+            username: usuario.getUsername()
         };
-        return userDto;
     }
 
-    /* @Post()
-    @HttpCode(201)
-    async addUsuario(@Body() usuarioDto: UsuarioDto): Promise<UsuarioDto> {
-        try {
-            const nuevoUsuario = await this._UsuarioService.addUsuario(usuarioDto);
-            const nuevoUsuarioDto: UsuarioDto = {
-                id: nuevoUsuario.getId(),
-                nombre: nuevoUsuario.getNombre(),
-                email: nuevoUsuario.getEmail(),
-                apellido: nuevoUsuario.getApellido(),
-                fechaCreacion: nuevoUsuario.getFechaCreacion(),
-                username: nuevoUsuario.getUsername(),
-                password: nuevoUsuario.getPassword()
-            };
-            return nuevoUsuarioDto;
-        } catch (error) {
-            throw new BadRequestException("Error al crear el usuario");
+    @GrpcMethod('UsuarioService', 'Actualizar')
+    async actualizar(data: { id: string, usuario: UsuarioDto }): Promise<{ success: boolean }> {
+        if (data.id !== data.usuario.id) {
+            throw new RpcException({
+                code: status.INVALID_ARGUMENT, 
+                message: "El ID de la ruta no coincide con el ID del cuerpo de la petición."
+            });
         }
-    } */
 
-    @Put(":id")
-    async updateUsuario(@Param("id") id: string, @Body() usuarioDto: UsuarioDto): Promise<void> {
-        if (id !== usuarioDto.id) {
-            throw new BadRequestException("El ID del usuario no coincide con el ID proporcionado en la URL");
-        }
         try {
-            await this._UsuarioService.updateUsuario(usuarioDto);
-        } catch (error) {
-            throw new NotFoundException("Usuario no encontrado");
+            const actualizado = await this._UsuarioService.updateUsuario(data.usuario);
+            
+            if (!actualizado) {
+                throw new RpcException({
+                    code: status.NOT_FOUND, 
+                    message: `Usuario con ID ${data.id} no encontrado para actualizar.`
+                });
+            }
+            
+            return { success: true };
+        } catch (error: any) {
+            if (error instanceof RpcException) throw error;
+
+            throw new RpcException({
+                code: status.INTERNAL,
+                message: error.message || "Error interno al actualizar el usuario."
+            });
         }
     }
     
-    @Delete(":id")
-    async deleteUsuario(@Param("id") id: string): Promise<void> {
+    @GrpcMethod('UsuarioService', 'Eliminar')
+    async eliminar(data: { id: string }): Promise<{ success: boolean }> {
         try {
-            await this._UsuarioService.deleteUsuario(id);
-        } catch (error) {
-            throw new NotFoundException("Usuario no encontrado");
+            const eliminado = await this._UsuarioService.deleteUsuario(data.id);
+            
+            if (!eliminado) {
+                throw new RpcException({
+                    code: status.NOT_FOUND, 
+                    message: `Usuario con ID ${data.id} no encontrado para eliminar.`
+                });
+            }
+            
+            return { success: true };
+        } catch (error: any) {
+            if (error instanceof RpcException) throw error;
+
+            throw new RpcException({
+                code: status.INTERNAL, // Código 13
+                message: error.message || "Error interno al eliminar el usuario."
+            });
         }
     }
 }
