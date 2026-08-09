@@ -3,10 +3,10 @@
   "scripts": {
     "build": "tsc",
     "start:dev": "tsx watch src/main.ts",
-    "test": "jest",
-    "test:unit": "jest test/unit",
-    "test:integration": "jest test/integration",
-    "test:e2e": "jest test/e2e"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:unit": "node --experimental-vm-modules node_modules/jest/bin/jest.js test/unit",
+    "test:integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js test/integration",
+    "test:e2e": "node --experimental-vm-modules node_modules/jest/bin/jest.js test/e2e"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.14.4",
