@@ -141,5 +141,43 @@ describe("UsuarioController", () => {
         expect(resultado).toEqual({"success": true});
         expect(usuarioServiceMock.deleteUsuario).toHaveBeenCalledWith("usuario-3");
     });
+    it("Delete eliminar- Return INTERNAL", async () => {
+        usuarioServiceMock.deleteUsuario.mockRejectedValue(new Error("Error al eliminar el usuario"));
+
+        try {
+            await controller.eliminar({id:"usuario-3"});
+
+            throw new Error("Se esperaba una RpcException");
+        } catch (error) {
+            expect(error).toBeInstanceOf(RpcException);
+
+            if (error instanceof RpcException) {
+                expect(error.getError()).toEqual({
+                    code: status.INTERNAL,
+                    message: error.message || "Error interno al actualizar el usuario."
+                });
+            }
+        }
+        expect(usuarioServiceMock.deleteUsuario).toHaveBeenCalledWith("usuario-3");
+    });
+    it("Delete eliminar- Return NOT_FOUND", async () => {
+        usuarioServiceMock.deleteUsuario.mockResolvedValue(false);
+
+        try {
+            await controller.eliminar({id:"usuario-3"});
+
+            throw new Error("Se esperaba una RpcException");
+        } catch (error) {
+            expect(error).toBeInstanceOf(RpcException);
+
+            if (error instanceof RpcException) {
+                expect(error.getError()).toEqual({
+                    code: status.NOT_FOUND,
+                    message: "Usuario con ID usuario-3 no encontrado para actualizar."
+                });
+            }
+        }
+        expect(usuarioServiceMock.deleteUsuario).toHaveBeenCalledWith("usuario-3");
+    });
 });
 
