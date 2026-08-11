@@ -28,5 +28,14 @@ export const modelosUsuariosDto = {
         apellido: 'Troillan',
         email: 'maira.troillan@example.com',
         username: 'MairaTr',
-        password: '12345'
+        fechaCreacion: new Date().toISOString(),
+    } as UsuarioDto
+
+export const modelosUsuariosDto2 = {
+        id: 'usuario-3',
+        nombre: 'Maira',
+        apellido: 'Troillan',
+        email: 'maira.troillan@example.com',
+        username: 'MairaTr',
+        fechaCreacion: new Date().toISOString(),
     } as UsuarioDto
