@@ -173,7 +173,7 @@ describe("UsuarioController", () => {
             if (error instanceof RpcException) {
                 expect(error.getError()).toEqual({
                     code: status.NOT_FOUND,
-                    message: "Usuario con ID usuario-3 no encontrado para actualizar."
+                    message: "Usuario con ID usuario-3 no encontrado para eliminar."
                 });
             }
         }
