@@ -54,8 +54,7 @@ describe("addUsuario", () => {
 
         carpetaServiceMock.updateCarpeta.mockResolvedValue(carpetaPrincipal);
 
-        jest.spyOn(service, "getUsuarioById")
-            .mockResolvedValue(usuarioCreado);
+        jest.spyOn(service, "getUsuarioById").mockResolvedValue(usuarioCreado);
 
         const resultado = await service.addUsuario(usuarioDto);
 
