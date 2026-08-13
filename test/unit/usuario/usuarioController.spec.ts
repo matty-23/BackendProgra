@@ -1,8 +1,6 @@
 import { beforeEach, describe, it, expect, jest, } from '@jest/globals';
 import { UsuarioController } from "../../../src/Controller/UsuarioController"
 import { usuarioServiceMock } from "./mocks/usuarioService.mock"
-//import { IUsuarioService } from '../../../src/Interfaces/IUsuarioService';
-//import { UsuarioService } from '../../../src/Service/UsuarioService';
 import { RpcException } from "@nestjs/microservices";
 import * as model from "../models/usuario.modelo"
 import { status } from '@grpc/grpc-js';
@@ -42,6 +40,25 @@ describe("UsuarioController", () => {
         }
         expect(usuarioServiceMock.getUsuarioById).toHaveBeenCalledWith("32");
     });
+    it("Get by Id- Return INTERNAL_SERVER_ERROR", async () => {
+        usuarioServiceMock.getUsuarioById.mockRejectedValue(new Error("Error al obtener el Id el usuario"));
+
+        try {
+            await controller.getById({ id: "32" });
+
+            throw new Error("Se esperaba una RpcException");
+        } catch (error) {
+            expect(error).toBeInstanceOf(RpcException);
+
+            if (error instanceof RpcException) {
+                expect(error.getError()).toEqual({
+                    code: status.INTERNAL,
+                    message:"Error al obtener el Id el usuario"
+                });
+            }
+        }
+        expect(usuarioServiceMock.getUsuarioById).toHaveBeenCalledWith("32");
+    });
 
     it("Get by Username- Return 200", async () => {
         usuarioServiceMock.getUsuarioByUsername.mockResolvedValue(model.modelosUsuarios.documentoUsuario2);
@@ -65,6 +82,25 @@ describe("UsuarioController", () => {
                 expect(error.getError()).toEqual({
                     code: status.NOT_FOUND,
                     message: "Usuario con username MairaT no encontrado."
+                });
+            }
+        }
+        expect(usuarioServiceMock.getUsuarioByUsername).toHaveBeenCalledWith("MairaT");
+    });
+    it("Get by Username- Return INTERNAL", async () => {
+        usuarioServiceMock.getUsuarioByUsername.mockRejectedValue(new Error("Error al obtener Usuario"));
+
+        try {
+            await controller.getUsuarioByUsername({ username: "MairaT" });
+
+            throw new Error("Se esperaba una RpcException");
+        } catch (error) {
+            expect(error).toBeInstanceOf(RpcException);
+
+            if (error instanceof RpcException) {
+                expect(error.getError()).toEqual({
+                    code: status.INTERNAL,
+                    message: "Error al obtener Usuario"
                 });
             }
         }
