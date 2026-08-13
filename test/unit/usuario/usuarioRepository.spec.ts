@@ -26,4 +26,16 @@ describe("Test usuarioRepository", ()=>{
         expect(saveMock).toHaveBeenCalledWith({});
         expect(saveMock.mock.instances[0]).toBeDefined();
         });
+    it("Crear Usuario - Devuelve Error",async ()=>{
+
+        jest.spyOn(UsuarioModel.prototype, 'save').mockRejectedValue(new Error('Error al guardar usuario'));
+        jest.spyOn(transactionContext, 'getStore').mockReturnValue(undefined);
+        await expect(repository.crearUsuario(model.modelosUsuarios.documentoUsuario1.getNombre(),
+        model.modelosUsuarios.documentoUsuario1.getApellido(),
+        model.modelosUsuarios.documentoUsuario1.getEmail(),
+        model.modelosUsuarios.documentoUsuario1.getUsername(),
+        model.modelosUsuarios.documentoUsuario1.getPassword(),
+    )).rejects.toThrow(new Error('Error al guardar usuario'));
+
+        });
 });
