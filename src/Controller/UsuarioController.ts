@@ -12,6 +12,7 @@ export class UsuarioController {
 
     @GrpcMethod('UsuarioService', 'GetById')
     async getById(data: { id: string }): Promise<UsuarioDto> {
+        try{
         const usuario = await this._UsuarioService.getUsuarioById(data.id);
 
         if (!usuario) {
@@ -27,11 +28,20 @@ export class UsuarioController {
             apellido: usuario.getApellido(),
             fechaCreacion: usuario.getFechaCreacion()?.toISOString(), 
             username: usuario.getUsername()
-        } as UsuarioDto;
+        } as UsuarioDto;}
+        catch(error: any) {
+            if (error instanceof RpcException) throw error;
+
+            throw new RpcException({
+                code: status.INTERNAL,
+                message: error.message || "Error interno al obtener el usuario."
+            });
+        }
     }
 
     @GrpcMethod('UsuarioService', 'GetByUsername')
     async getUsuarioByUsername(data: { username: string }): Promise<UsuarioDto> {
+        try{ 
         const usuario = await this._UsuarioService.getUsuarioByUsername(data.username);
         
         if (!usuario) {
@@ -48,7 +58,15 @@ export class UsuarioController {
             apellido: usuario.getApellido(),
             fechaCreacion: usuario.getFechaCreacion()?.toISOString(), 
             username: usuario.getUsername()
-        }  as UsuarioDto;
+        }  as UsuarioDto;}
+        catch(error: any) {
+            if (error instanceof RpcException) throw error;
+
+            throw new RpcException({
+                code: status.INTERNAL,
+                message: error.message || "Error interno al obtener el usuario."
+            });
+        }
     }
 
     @GrpcMethod('UsuarioService', 'Actualizar')
