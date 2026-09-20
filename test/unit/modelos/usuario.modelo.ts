@@ -1,7 +1,7 @@
 import { Usuario } from "../../../src/Models/Usuario";
 export const modelosUsuarios = {
 
-    documentoUsuario1: new Usuario(
+    Usuario1: new Usuario(
         'usuario-1',
         'Maira',
         'Troillan',
@@ -10,7 +10,7 @@ export const modelosUsuarios = {
         '12345'
     ),
     
-    documentoUsuario2: new Usuario(
+    Usuario2: new Usuario(
         'usuario-2',
         'Maira',
         'Troillan',

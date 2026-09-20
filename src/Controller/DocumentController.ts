@@ -70,6 +70,7 @@ export class DocumentoController {
         const actualizado = await this._documentoService.updateDocumento({ ...data.doc, id: data.id });
         
         if (!actualizado) {
+            
             throw new RpcException({ code: 5, message: `Documento con ID ${data.id} no encontrado para actualizar.` });
         }
 

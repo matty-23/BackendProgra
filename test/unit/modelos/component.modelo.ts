@@ -1,17 +1,20 @@
 
 import { Documento } from '../../../src/Models/Documento.js';
 import { Componente } from '../../../src/Models/Componente.js';
-
+import { ObjectId } from 'mongodb';
 export const modelosComponente = {
 
     compDocUsuario1: new Componente(
-        '123',
+        '507f1f77bcf86cd799439011',
         'Componente',
         new Date(),
         new Date(),
         'usuario-1',
         'documento'
     ),
+   ObjtIDCompoDocUSuario1: new ObjectId(
+    '507f1f77bcf86cd799439011'
+),
    compDocUsuario1_2: new Componente(
         '124',
         'Componente',
