@@ -27,6 +27,7 @@ export class DocumentoService extends IDocumentoService {
     async getDocumentoById(id: string): Promise<Documento> {
         const componente = await this._componenteRepo.obtenerPorId(id.toString());
         if (!componente) throw new Error("Componente no encontrado");
+        if (componente.getTipo() !== 'documento') throw new Error('El componente no pertenece a un tipo documento')
         const documento = await this._docRepo.obtenerPorId(id.toString(), componente);
         if (!documento) throw new Error("Documento no encontrado");
         return documento;
