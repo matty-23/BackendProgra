@@ -16,3 +16,15 @@ export const mockCarpetaMongo = {
     ReadMe: "Contenido del archivo ReadMe",
     componentes: []
 };
+
+export const payloadUpdate = {
+        id: mockId,
+        carp: {
+            nombre: "Carpeta Actualizada",
+            idUsuario: "user123",
+            ReadMe: "Readme modificado",
+            fechaCreacion: new Date(),
+            fechaUltimaModificacion: new Date(),
+            componentes: []
+        }
+    };
