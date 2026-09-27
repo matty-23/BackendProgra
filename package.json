@@ -29,6 +29,7 @@
     "tsc": "^2.0.4"
   },
   "devDependencies": {
+    "@nestjs/testing": "^11.2.6",
     "@types/bcrypt": "^6.0.0",
     "@types/dotenv": "^6.1.1",
     "@types/jest": "^30.0.0",
