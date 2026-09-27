@@ -1,4 +1,4 @@
-import { beforeEach, describe, it, expect, jest, } from '@jest/globals';
+import { beforeEach, describe, it, expect, jest, afterEach } from '@jest/globals';
 import * as model from "../models/usuario.modelo";
 import { Types,} from 'mongoose';
 import { UsuarioModel } from '../../../src/Database/Schemes/UsuarioScheme';
@@ -10,9 +10,15 @@ describe("Test usuarioRepository", ()=>{
     let repository: UsuarioRepository
     beforeEach(()=>{
          jest.clearAllMocks();
-         repository=new UsuarioRepository();
+         jest.useFakeTimers();
+         jest.setSystemTime(new Date('2026-01-01T12:00:00.000Z'));
+         
+         repository = new UsuarioRepository();
     });
-    
+
+    afterEach(() => {
+        jest.useRealTimers();
+    });
     it("Crear Usuario - Devuelve ID",async ()=>{
         const saveMock = jest.spyOn(UsuarioModel.prototype, 'save').mockResolvedValue({_id:  model.usuarioMongo._id,} as any);
         jest.spyOn(transactionContext, 'getStore').mockReturnValue(undefined);
