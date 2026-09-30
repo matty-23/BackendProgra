@@ -23,7 +23,6 @@ export const modelosUsuarios = {
     ),
 
 }
-
 export const modelosUsuariosDto = {
     id: 'usuario-2',
     nombre: 'Maira',
