@@ -1,4 +1,4 @@
-import { beforeEach, describe, it, expect, jest, } from '@jest/globals';
+import { beforeEach, describe, it, expect, jest, afterEach } from '@jest/globals';
 import * as model from "../models/usuario.modelo";
 import { Types, } from 'mongoose';
 import { UsuarioModel } from '../../../src/Database/Schemes/UsuarioScheme';

@@ -22,6 +22,7 @@ export const componenteRepoMock = {
   obtenerPorId: jest.fn(),
   crearComponente: jest.fn(),
   actualizar: jest.fn(),
+  eliminar:jest.fn(),
 } as unknown as jest.Mocked<ComponenteRepository>;
 
 export const txManagerMock = {

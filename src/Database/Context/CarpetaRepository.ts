@@ -5,11 +5,12 @@ import type { ICarpetaScheme } from '../../Interfaces/ICarpetaScheme.js';
 import { Componente } from '../../Models/Componente.js';
 import { ComponenteRepository } from './ComponenteRepository.js';
 import { transactionContext } from '../TransactionContext.js';
-import { Injectable } from '@nestjs/common';
+import { Injectable,Inject,forwardRef } from '@nestjs/common';
 
 @Injectable()
 export class CarpetaRepository {
 
+    constructor(@Inject(forwardRef(() => ComponenteRepository)) private readonly _componenteRepo: ComponenteRepository) {}
 
     async crear(ReadMe: string, id: string, componentes: Componente[]): Promise<Types.ObjectId> {
         const session = transactionContext.getStore();
@@ -35,7 +36,7 @@ export class CarpetaRepository {
     async obtenerComponentesCarpeta(id: string): Promise<Componente[] | null> {
         const session = transactionContext.getStore();
         const carpeta = await CarpetaModel.findOne({ _id: new Types.ObjectId(id) }).session(session || null).lean<ICarpetaScheme>().exec();
-        const repositorioComponente = new ComponenteRepository();
+        const repositorioComponente = this._componenteRepo;
         if (!carpeta) return null;
 
         const componentes: Componente[] = [];
