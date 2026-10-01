@@ -129,7 +129,13 @@ describe("Test usuarioRepository", () => {
         const resultado = await repository.obtenerUsuarioPorEmail(model.usuarioMongo.email);
 
         expect(resultado).toBeInstanceOf(Usuario);
-        expect(resultado).toEqual(new Usuario(model.usuarioMongo._id.toString(), "Juan", "Perez", "juan@gmail.com", "juan123", "123456"));
+        expect(resultado?.getId()).toBe(model.usuarioMongo._id.toString());
+        expect(resultado?.getNombre()).toBe("Juan");
+        expect(resultado?.getApellido()).toBe("Perez");
+        expect(resultado?.getEmail()).toBe("juan@gmail.com");
+        expect(resultado?.getUsername()).toBe("juan123");
+        expect(resultado?.getPassword()).toBe("123456");
+        expect(resultado?.getFechaCreacion()).toBeInstanceOf(Date);
         expect(UsuarioModel.findOne).toHaveBeenCalledWith({ email: model.usuarioMongo.email });
         expect(sessionMock).toHaveBeenCalledWith(null);
     });
